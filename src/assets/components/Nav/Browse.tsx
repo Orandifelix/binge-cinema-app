@@ -1,21 +1,138 @@
-const Browse = () => {
-  return (
-    <div>
-        <button className="hidden md:flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium text-gray-800">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-4 h-4 text-gray-700"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <span>Browse</span>
-          </button>
-    </div>
-  )
-}
+import { useState } from "react";
+import { X, Home, Film, Tv, Star, PlayCircle, CalendarClock } from "lucide-react";
 
-export default Browse
+const Browse = () => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      {/* Browse button */}
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center space-x-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium"
+      >
+        {/* Hamburger Icon */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-5 h-5 text-gray-700"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+        <span>Browse</span>
+      </button>
+
+      {/* Sidebar Overlay */}
+      {open && (
+        <div className="fixed inset-0 z-50 flex">
+          {/* Sidebar panel */}
+          <div className="w-64 bg-black text-white h-full shadow-lg p-4 overflow-y-auto">
+            {/* Close button */}
+            <button
+              onClick={() => setOpen(false)}
+              className="p-2 hover:bg-gray-800 rounded-md mb-4"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Menu */}
+            <nav className="space-y-4">
+              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+                <Home className="w-5 h-5" />
+                <span>Home</span>
+              </a>
+
+              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+                <Film className="w-5 h-5" />
+                <span>Movies</span>
+              </a>
+
+              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+                <Tv className="w-5 h-5" />
+                <span>TV Shows</span>
+              </a>
+
+              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+                <Star className="w-5 h-5" />
+                <span>Top IMDB</span>
+              </a>
+
+              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+                <PlayCircle className="w-5 h-5" />
+                <span>Latest Movies</span>
+              </a>
+
+              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+                <Tv className="w-5 h-5" />
+                <span>Latest TV Shows</span>
+              </a>
+
+              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+                <CalendarClock className="w-5 h-5" />
+                <span>Coming Soon</span>
+              </a>
+            </nav>
+
+            {/* Divider */}
+            <hr className="my-4 border-gray-700" />
+
+            {/* Genres */}
+            <h3 className="text-xs uppercase tracking-wide text-gray-400 mb-2">
+              Genre
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "Action",
+                "Comedy",
+                "Drama",
+                "Horror",
+                "Romance",
+                "Crime",
+                "Sci-Fi & Fantasy",
+                "Thriller",
+                "Western",
+                "Documentary",
+                "Adventure",
+                "Animations",
+                "Biography",
+                "War & Politics",
+                "Music",
+                "Mystery",
+                "Family",
+                "Reality",
+                "Kids",
+                "History",
+                "Soap",
+                "War",
+
+              ].map((genre) => (
+                <button
+                  key={genre}
+                  className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-sm rounded-md"
+                >
+                  {genre}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Dark overlay background */}
+          <div
+            className="flex-1 bg-black bg-opacity-50"
+            onClick={() => setOpen(false)}
+          />
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Browse;
+
