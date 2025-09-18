@@ -1,0 +1,65 @@
+{
+    "movies": [
+      {
+        "title": "Midnight Hunter",
+        "year": "2024",
+        "runtime": "2h 15m",
+        "genre": "Action",
+        "rating": "8.9",
+        "overview": "In a world where time and space collide, a team of scientists must prevent the collapse of reality itself.",
+        "backdrop": "https://image.tmdb.org/t/p/original/8Y43POKjjKDGI9MH89NW0NAzzp8.jpg",
+        "trailerUrl": "https://www.youtube.com/embed/abc123"
+      },
+      {
+        "title": "The Last Frontier",
+        "year": "2023",
+        "runtime": "2h 5m",
+        "genre": "Sci-Fi",
+        "rating": "8.3",
+        "overview": "Humanity’s last hope ventures beyond the stars in a thrilling race against extinction.",
+        "backdrop": "https://image.tmdb.org/t/p/original/6DrHO1jr3qVrViUO6s6kFiAGM7.jpg",
+        "trailerUrl": "https://www.youtube.com/embed/def456"
+      },
+      {
+        "title": "Silent Shadows",
+        "year": "2022",
+        "runtime": "1h 45m",
+        "genre": "Thriller",
+        "rating": "7.6",
+        "overview": "When the truth hides in silence, a family must fight to survive the unknown terror.",
+        "backdrop": "https://image.tmdb.org/t/p/original/9Gtg2DzBhmYamXBS1hKAhiwbBKS.jpg",
+        "trailerUrl": "https://www.youtube.com/embed/ghi789"
+      },
+      {
+        "title": "Eternal Flame",
+        "year": "2021",
+        "runtime": "2h 20m",
+        "genre": "Drama",
+        "rating": "8.1",
+        "overview": "A tale of love, loss, and redemption that burns brighter than time itself.",
+        "backdrop": "https://image.tmdb.org/t/p/original/5P8SmMzSNYikXpxil6BYzJ16611.jpg",
+        "trailerUrl": "https://www.youtube.com/embed/jkl012"
+      },
+      {
+        "title": "Rise of Legends",
+        "year": "2020",
+        "runtime": "2h 40m",
+        "genre": "Fantasy",
+        "rating": "9.0",
+        "overview": "Heroes from all realms unite in an epic saga to reclaim their world from darkness.",
+        "backdrop": "https://image.tmdb.org/t/p/original/rSPw7tgCH9c6NqICZef4kZjFOQ5.jpg",
+        "trailerUrl": "https://www.youtube.com/embed/mno345"
+      },
+      {
+        "title": "Crimson Skies",
+        "year": "2019",
+        "runtime": "1h 55m",
+        "genre": "Adventure",
+        "rating": "7.8",
+        "overview": "A daring pilot risks everything in a breathtaking journey across uncharted lands.",
+        "backdrop": "https://image.tmdb.org/t/p/original/x747ZvF0CcYYTTpPRCoUrxA2cYy.jpg",
+        "trailerUrl": "https://www.youtube.com/embed/pqr678"
+      }
+    ]
+  }
+  
