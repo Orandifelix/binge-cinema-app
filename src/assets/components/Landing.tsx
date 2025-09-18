@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { Play, Info, ChevronLeft, ChevronRight } from "lucide-react";
+
 import Content from "./Landing/Content";
+import Next_previous from "./Landing/Next_previous";
+import PlayModal from "./Landing/Play_modal";
 
 const Landing = () => {
   const [movies, setMovies] = useState<any[]>([]);
@@ -41,8 +43,8 @@ const Landing = () => {
 
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/50"></div>
-
-
+      {/* Navigation Arrows */}
+      <Next_previous prevMovie={prevMovie} nextMovie={nextMovie} />
 
       {/* Content */}
       <Content movie={movies[currentIndex]} setTrailerOpen={setTrailerOpen} />
@@ -61,25 +63,12 @@ const Landing = () => {
       </div>
 
       {/* Trailer Modal */}
-      {trailerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-          <div className="relative w-full max-w-3xl aspect-video bg-black rounded-md overflow-hidden">
-            <iframe
-              src={movie.trailerUrl}
-              title="Trailer"
-              className="w-full h-full"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-            />
-            <button
-              onClick={() => setTrailerOpen(false)}
-              className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white p-2 rounded-md"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
+      <PlayModal
+        trailerOpen={trailerOpen}
+        trailerUrl={movie.trailerUrl}
+        onClose={() => setTrailerOpen(false)}
+      />
+
     </section>
   );
 };
