@@ -1,3 +1,4 @@
+import Landing from "./assets/components/Landing"
 import Navbar from "./assets/components/Navbar"
 
 const App = () => {
@@ -8,12 +9,7 @@ const App = () => {
 
       {/* Main content */}
       <main className="flex-1 p-6 overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">
-          Welcome to BingeCinema 🎬
-        </h2>
-        <p>
-          Here we’ll render movie sections, recommendations, and more.
-        </p>
+        <Landing />
       </main>
     </div>
   )
