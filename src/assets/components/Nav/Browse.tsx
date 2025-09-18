@@ -11,7 +11,6 @@ const Browse = () => {
         onClick={() => setOpen(true)}
         className="flex items-center space-x-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium"
       >
-        {/* Hamburger Icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="w-5 h-5 text-gray-700"
@@ -20,20 +19,16 @@ const Browse = () => {
           strokeWidth={2}
           stroke="currentColor"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M4 6h16M4 12h16M4 18h16"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
         <span>Browse</span>
       </button>
 
-      {/* Sidebar Overlay */}
+      {/* Sidebar + Overlay */}
       {open && (
         <div className="fixed inset-0 z-50 flex">
-          {/* Sidebar panel */}
-          <div className="w-64 bg-black text-white h-full shadow-lg p-4 overflow-y-auto">
+          {/* Sidebar (black) */}
+          <div className="w-64 bg-black text-white h-full shadow-lg p-4 overflow-y-auto relative z-50">
             {/* Close button */}
             <button
               onClick={() => setOpen(false)}
@@ -48,32 +43,26 @@ const Browse = () => {
                 <Home className="w-5 h-5" />
                 <span>Home</span>
               </a>
-
               <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
                 <Film className="w-5 h-5" />
                 <span>Movies</span>
               </a>
-
               <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
                 <Tv className="w-5 h-5" />
                 <span>TV Shows</span>
               </a>
-
               <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
                 <Star className="w-5 h-5" />
                 <span>Top IMDB</span>
               </a>
-
               <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
                 <PlayCircle className="w-5 h-5" />
                 <span>Latest Movies</span>
               </a>
-
               <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
                 <Tv className="w-5 h-5" />
                 <span>Latest TV Shows</span>
               </a>
-
               <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
                 <CalendarClock className="w-5 h-5" />
                 <span>Coming Soon</span>
@@ -111,7 +100,6 @@ const Browse = () => {
                 "History",
                 "Soap",
                 "War",
-
               ].map((genre) => (
                 <button
                   key={genre}
@@ -123,9 +111,9 @@ const Browse = () => {
             </div>
           </div>
 
-          {/* Dark overlay background */}
+          {/* Semi-transparent overlay (rest of screen) */}
           <div
-            className="flex-1 bg-black bg-opacity-50"
+            className="flex-1 bg-black/50"
             onClick={() => setOpen(false)}
           />
         </div>
@@ -135,4 +123,3 @@ const Browse = () => {
 };
 
 export default Browse;
-
