@@ -9,23 +9,15 @@ const Navbar = () => {
   return (
     <nav className="w-full bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto h-16 flex items-center justify-between px-4 md:px-6">
-        
-        {/* Left: Browse button (desktop only) + Logo */}
+      
         <div className="flex items-center space-x-3">
-          {/* Browse button (desktop only) */}
           <Browse />
-          {/* Logo (always visible) */}
         </div>
         <h1 className="text-lg font-bold italic text-gray-900">
             BingeCinema
           </h1>
-
-        {/* Center: Search (desktop only) */}
         <Search />
-
-        {/* Right: Account (desktop only) + Hamburger (mobile only) */}
         <div className="flex items-center space-x-3">
-          {/* Account  */}
           <Account />
 
           {/* Hamburger (mobile only) */}
