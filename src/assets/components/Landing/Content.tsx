@@ -14,7 +14,7 @@ interface ContentProps {
 
 const Content = ({ movie, setTrailerOpen }: ContentProps) => {
   return (
-    <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 h-full text-white">
+    <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 px-16 h-full text-white">
       {/* Left column (Movie Info) */}
       <div className="flex flex-col justify-center px-6 sm:px-8 py-8 space-y-4 md:col-span-1">
         <span className="bg-white text-black px-3 py-1 text-xs rounded-full w-fit">
