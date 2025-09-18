@@ -8,7 +8,7 @@ const App = () => {
       <Navbar />
 
       {/* Main content */}
-      <main className="flex-1 p-6 overflow-y-auto">
+      <main className="flex-1  overflow-y-auto">
         <Landing />
       </main>
     </div>
