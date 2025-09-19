@@ -60,6 +60,57 @@
         "backdrop": "https://image.tmdb.org/t/p/original/x747ZvF0CcYYTTpPRCoUrxA2cYy.jpg",
         "trailerUrl": "https://www.youtube.com/embed/pqr678"
       }
-    ]
+    ],
+
+
+    
+      "categories": [
+        { "id": 1, "name": "Movies" },
+        { "id": 2, "name": "TV Shows" },
+        { "id": 3, "name": "Top IMDB" },
+        { "id": 4, "name": "Latest Movies" },
+        { "id": 5, "name": "Latest TV Shows" },
+        { "id": 6, "name": "Coming Soon" }
+      ],
+      "movies1": [
+        {
+          "id": 1,
+          "title": "Dark Waters",
+          "year": "2023",
+          "runtime": "2h 10m",
+          "genre": "Action",
+          "rating": "9.0",
+          "overview": "A lawyer uncovers a dark secret that threatens to destroy a small town.",
+          "backdrop": "https://image.tmdb.org/t/p/original/x747ZvF0CcYYTTpPRCoUrxA2cYy.jpg",
+          "trailerUrl": "https://www.youtube.com/embed/tbbveDpUZv4",
+          "categoryId": 4
+        },
+        {
+          "id": 2,
+          "title": "Midnight Hunter",
+          "year": "2024",
+          "runtime": "2h 15m",
+          "genre": "Thriller",
+          "rating": "8.8",
+          "overview": "In a world where time and space collide, a team of scientists must prevent the collapse of reality itself.",
+          "backdrop": "https://image.tmdb.org/t/p/original/8Y43POKjjKDGI9MH89NW0NAzzp8.jpg",
+          "trailerUrl": "https://www.youtube.com/embed/tbbveDpUZv4",
+          "categoryId": 1
+        },
+        {
+          "id": 3,
+          "title": "Silent Shadows",
+          "year": "2022",
+          "runtime": "1h 45m",
+          "genre": "Thriller",
+          "rating": "7.6",
+          "overview": "When the truth hides in silence, a family must fight to survive the unknown terror.",
+          "backdrop": "https://image.tmdb.org/t/p/original/9Gtg2DzBhmYamXBS1hKAhiwbBKS.jpg",
+          "trailerUrl": "https://www.youtube.com/embed/tbbveDpUZv4",
+          "categoryId": 3
+        }
+      ]
+    
+    
   }
   
