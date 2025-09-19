@@ -1,34 +1,60 @@
-import React from "react";
+import MovieCard from "./Home/MovieCard";
+import type { Movie } from "./Home/MovieCard"; // <-- type-only import (important)
 
 const Home: React.FC = () => {
-  // Sections config 
   const sections = [
-    { title: "🎬 Movies", color: "bg-red-500/20", label: "Movie" },
-    { title: "📺 TV Shows", color: "bg-blue-500/20", label: "Show" },
-    { title: "⭐ Top IMDB", color: "bg-yellow-500/20", label: "Top" },
-    { title: "🎞 Latest Movies", color: "bg-green-500/20", label: "Latest" },
-    { title: "📡 Latest TV Shows", color: "bg-purple-500/20", label: "Show" },
-    { title: "⏳ Coming Soon", color: "bg-pink-500/20", label: "Coming" },
+    { title: "🎬 Movies", label: "Movie" },
+    { title: "📺 TV Shows", label: "Show" },
+    { title: "⭐ Top IMDB", label: "Top" },
+    { title: "🎞 Latest Movies", label: "Latest" },
+    { title: "📡 Latest TV Shows", label: "Show" },
+    { title: "⏳ Coming Soon", label: "Coming" },
+  ];
+
+  // Dummy movies typed with the Movie interface
+  const dummyMovies: Movie[] = [
+    {
+      id: 1,
+      title: "Dark Waters",
+      year: "2023",
+      genre: "Action",
+      rating: "9.0",
+      backdrop:
+        "https://image.tmdb.org/t/p/original/x747ZvF0CcYYTTpPRCoUrxA2cYy.jpg",
+    },
+    {
+      id: 2,
+      title: "Midnight Hunter",
+      year: "2024",
+      genre: "Thriller",
+      rating: "8.8",
+      backdrop:
+        "https://image.tmdb.org/t/p/original/8Y43POKjjKDGI9MH89NW0NAzzp8.jpg",
+    },
+    {
+      id: 3,
+      title: "Neon Dreams",
+      year: "2022",
+      genre: "Sci-Fi",
+      rating: "8.5",
+      backdrop:
+        "https://image.tmdb.org/t/p/original/fuVuDYrs8sxvEolnYr0wCSvtyTi.jpg",
+    },
+    // ...you can add more items here
   ];
 
   return (
-    <div className="h-auto bg-gray-950 text-white py-6 space-y-4">
+    <div className="h-auto bg-gray-950 text-white py-6 space-y-8">
       {sections.map((section, idx) => (
         <section key={idx}>
-          {/* Section Title */}
           <h1 className="px-2 lg:px-24 text-xl sm:text-2xl font-bold mb-4">
             {section.title}
           </h1>
 
-          {/* Grid of Cards */}
           <div className="px-2 lg:px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {[...Array(12)].map((_, i) => (
-              <div
-                key={i}
-                className={`h-64 ${section.color} rounded-lg flex items-center justify-center text-sm font-semibold`}
-              >
-                {section.label} {i + 1}
-              </div>
+            {/* Use unique keys - combine id + index if needed */}
+            {dummyMovies.map((movie, i) => (
+              <MovieCard key={`${movie.id ?? i}-${i}`} movie={movie} />
             ))}
           </div>
         </section>
@@ -38,4 +64,3 @@ const Home: React.FC = () => {
 };
 
 export default Home;
-
