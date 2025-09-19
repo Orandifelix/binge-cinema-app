@@ -47,10 +47,17 @@ const Home: React.FC = () => {
     <div className="h-auto bg-gray-950 text-white py-6 space-y-8">
       {sections.map((section, idx) => (
         <section key={idx}>
-          <h1 className="px-2 lg:px-24 text-xl sm:text-2xl font-bold mb-4">
-            {section.title}
-          </h1>
-
+          <div className="px-4"> 
+            <h1
+              className="px-2 lg:px-22 text-xl sm:text-2xl font-bold mb-4 
+                        border-l-4 pl-3 text-white"
+              style={{
+                borderImage: "linear-gradient(to bottom, #FFD700, #FFA500) 1",
+              }}
+            >
+              {section.title}
+            </h1>
+         </div>
           <div className="px-2 lg:px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {/* Use unique keys - combine id + index if needed */}
             {dummyMovies.map((movie, i) => (
