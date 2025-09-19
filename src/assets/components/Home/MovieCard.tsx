@@ -1,4 +1,5 @@
 import React from "react";
+import { Play, Info } from "lucide-react";
 
 export interface Movie {
   id: number;
@@ -35,11 +36,11 @@ const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
 
       {/* Hover buttons (center) */}
       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 transition-opacity duration-300">
-        <button className="px-3 py-1 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition">
-          ▶ Play
+        <button className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition">
+          <Play size={16} /> Play
         </button>
-        <button className="px-3 py-1 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-600 transition">
-          ℹ Info
+        <button className="flex items-center gap-1 px-3 py-1 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-600 transition">
+          <Info size={16} /> Info
         </button>
       </div>
     </div>
