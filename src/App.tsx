@@ -1,3 +1,4 @@
+import Home from "./assets/components/Home"
 import Landing from "./assets/components/Landing"
 import Navbar from "./assets/components/Navbar"
 
@@ -10,6 +11,7 @@ const App = () => {
       {/* Main content */}
       <main className="flex-1  overflow-y-auto">
         <Landing />
+        <Home />
       </main>
     </div>
   )
