@@ -16,8 +16,12 @@ const Navbar = () => {
         </div>
 
         {/* Center - Logo */}
-        <h1 className="text-lg font-bold italic text-white">
-          🎬 BingeCinema
+        <h1
+        className="text-lg font-bold italic text-white cursor-pointer
+                  transition-all duration-200
+                  hover:text-indigo-400 hover:scale-105 hover:drop-shadow-lg"
+        >
+        🎬 BingeCinema
         </h1>
 
         {/* Center - Search */}
