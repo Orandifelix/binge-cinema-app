@@ -9,7 +9,9 @@ const Browse = () => {
       {/* Browse button */}
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center space-x-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium"
+        className="flex items-center space-x-2 px-3 py-1.5 bg-white text-gray-900 rounded-md text-sm font-medium 
+           shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
