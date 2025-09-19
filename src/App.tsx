@@ -1,10 +1,11 @@
+import Footer from "./assets/components/Footer"
 import Home from "./assets/components/Home"
 import Landing from "./assets/components/Landing"
 import Navbar from "./assets/components/Navbar"
 
 const App = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100 text-gray-900 font-sans">
+    <div className="flex flex-col min-h-screen bg-gray-900 text-gray-900 font-sans">
       {/* Navbar */}
       <Navbar />
 
@@ -13,6 +14,7 @@ const App = () => {
         <Landing />
         <Home />
       </main>
+      <Footer />
     </div>
   )
 }

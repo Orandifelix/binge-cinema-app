@@ -1,25 +1,17 @@
 import React from "react";
-import { Play, Info } from "lucide-react";
 
 export interface Movie {
-  id?: number;
+  id: number;
   title: string;
   year: string;
   genre: string;
   rating: string;
   backdrop: string;
-  trailerUrl?: string;
 }
 
-interface MovieCardProps {
-  movie: Movie;
-}
-
-const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
+const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
   return (
-    <div
-      className="relative group rounded-lg overflow-hidden shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105"
-    >
+    <div className="relative group overflow-hidden rounded-lg shadow-lg transition-transform duration-300 hover:scale-105">
       {/* Poster */}
       <img
         src={movie.backdrop}
@@ -28,30 +20,26 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
         loading="lazy"
       />
 
-      {/* Rating badge */}
-      <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md flex items-center space-x-1">
-        <span>⭐</span>
-        <span>{movie.rating}</span>
+      {/* Rating (top-right corner) */}
+      <div className="absolute top-2 right-2 bg-black/80 text-yellow-400 px-2 py-1 text-xs rounded-md font-semibold">
+        ⭐ {movie.rating}
       </div>
 
-      {/* Movie details (always visible) */}
-      <div className="absolute bottom-2 left-2 text-white">
-        <span className="bg-white/70 text-black text-xs px-2 py-0.5 rounded-md">
-          {movie.genre}
-        </span>
-        <h3 className="text-sm font-bold leading-tight">{movie.title}</h3>
-        <p className="text-xs">{movie.year}</p>
+      {/* Always visible details (bottom) */}
+      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-3 py-2 text-sm">
+        <h3 className="font-semibold">{movie.title}</h3>
+        <p className="text-xs text-gray-300">
+          {movie.genre} • {movie.year}
+        </p>
       </div>
 
-      {/* Hover buttons (only appear on hover) */}
-      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center space-y-3 transition-opacity duration-300">
-        <button className="flex items-center space-x-2 bg-white text-black px-4 py-2 rounded-md text-sm font-semibold hover:bg-gray-200">
-          <Play className="w-4 h-4" />
-          <span>Play</span>
+      {/* Hover buttons (center) */}
+      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 transition-opacity duration-300">
+        <button className="px-3 py-1 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition">
+          ▶ Play
         </button>
-        <button className="flex items-center space-x-2 bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-gray-700">
-          <Info className="w-4 h-4" />
-          <span>Info</span>
+        <button className="px-3 py-1 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-600 transition">
+          ℹ Info
         </button>
       </div>
     </div>
@@ -59,4 +47,5 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
 };
 
 export default MovieCard;
+
 
