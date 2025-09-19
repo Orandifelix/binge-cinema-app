@@ -12,7 +12,9 @@ const Navbar = () => {
         
         {/* Left - Browse */}
         <div className="flex items-center space-x-3">
-          <Browse />
+        <div className="hidden md:block">
+  <Browse />
+</div>
         </div>
 
         {/* Center - Logo */}
@@ -29,7 +31,9 @@ const Navbar = () => {
 
         {/* Right - Account + Hamburger */}
         <div className="flex items-center space-x-3">
-          <Account />
+        <div className="hidden md:block">
+    <Account />
+  </div>
 
           {/* Hamburger (mobile only) */}
           <button
