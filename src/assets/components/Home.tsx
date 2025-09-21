@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import MovieCard from "./Home/MovieCard";
-import type { Movie } from "./Home/MovieCard"; // <-- type-only import
+import type { Movie } from "./Home/MovieCard";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const sections = [
   { title: "🎬 Movies", label: "movie" },
@@ -11,7 +12,6 @@ const sections = [
   { title: "⏳ Coming Soon", label: "upcoming" },
 ];
 
-// ✅ Custom hook for fetching movies
 const useFetchMovies = (endpoint: string) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,22 +19,24 @@ const useFetchMovies = (endpoint: string) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`https://api.themoviedb.org/3/${endpoint}`, {
-          headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_TMDB_READ_ACCESS_TOKEN}`,
-            accept: "application/json",
-          },
-        });
+        const res = await fetch(
+          `https://api.themoviedb.org/3/${endpoint}?language=en-US&page=1`,
+          {
+            headers: {
+              Authorization: `Bearer ${import.meta.env.VITE_TMDB_READ_ACCESS_TOKEN}`,
+              accept: "application/json",
+            },
+          }
+        );
 
         if (!res.ok) throw new Error(`Error ${res.status}`);
         const data = await res.json();
 
-        // Map results into Movie type
         const mapped: Movie[] = data.results.map((m: any) => ({
           id: m.id,
-          title: m.title || m.name, // movie or tv show
+          title: m.title || m.name,
           year: (m.release_date || m.first_air_date || "N/A").split("-")[0],
-          genre: "N/A", // you can fetch genres separately if needed
+          genre: "N/A",
           rating: m.vote_average?.toFixed(1) || "0.0",
           backdrop: m.backdrop_path
             ? `https://image.tmdb.org/t/p/original${m.backdrop_path}`
@@ -57,9 +59,8 @@ const useFetchMovies = (endpoint: string) => {
 
 const Home: React.FC = () => {
   return (
-    <div className="h-auto bg-gray-950 text-white py-6 space-y-8">
+    <div className="h-auto bg-gray-950 text-white py-6 space-y-12">
       {sections.map((section, idx) => {
-        // choose correct TMDB endpoint per section
         let endpoint = "";
         switch (section.label) {
           case "movie":
@@ -85,12 +86,33 @@ const Home: React.FC = () => {
         }
 
         const { movies, loading } = useFetchMovies(endpoint);
+        const [currentPage, setCurrentPage] = useState(0);
+        const pageSize = 6;
+        const totalPages = Math.ceil(movies.length / pageSize);
+
+        const paginatedMovies = movies.slice(
+          currentPage * pageSize,
+          currentPage * pageSize + pageSize
+        );
+
+        const handleNext = () => {
+          if (currentPage < totalPages - 1) {
+            setCurrentPage((prev) => prev + 1);
+          }
+        };
+
+        const handlePrev = () => {
+          if (currentPage > 0) {
+            setCurrentPage((prev) => prev - 1);
+          }
+        };
 
         return (
-          <section key={idx}>
+          <section key={idx} className="space-y-4">
+            {/* Section Title */}
             <div className="px-4">
               <h1
-                className="px-2 lg:px-2 text-xl sm:text-2xl font-bold mb-4 
+                className="px-2 lg:px-2 text-xl sm:text-2xl font-bold 
                           border-l-4 pl-3 text-white"
                 style={{
                   borderImage: "linear-gradient(to bottom, #FFD700, #FFA500) 1",
@@ -100,15 +122,42 @@ const Home: React.FC = () => {
               </h1>
             </div>
 
-            {loading ? (
-              <p className="px-4">Loading...</p>
-            ) : (
-              <div className="px-2 lg:px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {movies.map((movie, i) => (
-                  <MovieCard key={`${movie.id}-${i}`} movie={movie} />
-                ))}
-              </div>
-            )}
+            {/* Movies Row with arrows */}
+            <div className="relative">
+              {loading ? (
+                <p className="px-4">Loading...</p>
+              ) : (
+                <>
+                  <div className="px-2 lg:px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {paginatedMovies.map((movie, i) => (
+                      <MovieCard key={`${movie.id}-${i}`} movie={movie} />
+                    ))}
+                  </div>
+
+                  {/* Left Arrow */}
+                  {currentPage > 0 && (
+                    <button
+                      onClick={handlePrev}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 
+                                 bg-gray-800/80 hover:bg-gray-700 p-2 rounded-full shadow-lg"
+                    >
+                      <ChevronLeft className="w-6 h-6 text-white" />
+                    </button>
+                  )}
+
+                  {/* Right Arrow */}
+                  {currentPage < totalPages - 1 && (
+                    <button
+                      onClick={handleNext}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 
+                                 bg-gray-800/80 hover:bg-gray-700 p-2 rounded-full shadow-lg"
+                    >
+                      <ChevronRight className="w-6 h-6 text-white" />
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </section>
         );
       })}
@@ -117,4 +166,3 @@ const Home: React.FC = () => {
 };
 
 export default Home;
-
