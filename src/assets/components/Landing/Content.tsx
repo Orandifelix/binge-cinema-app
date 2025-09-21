@@ -1,7 +1,9 @@
-import { Play, Info } from "lucide-react";
+import { Play } from "lucide-react";
+import MovieInfo from "./MovieInfo";
 
 interface ContentProps {
   movie: {
+    id: number;
     title: string;
     year: string;
     runtime: string;
@@ -9,13 +11,13 @@ interface ContentProps {
     rating: number;
     overview: string;
   };
-  setTrailerOpen: (open: boolean) => void;
+  playTrailer: (id: number) => void;
 }
 
-const Content = ({ movie, setTrailerOpen }: ContentProps) => {
+const Content = ({ movie, playTrailer }: ContentProps) => {
   return (
     <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 px-16 h-full text-white">
-      {/* Left column (Movie Info) */}
+      {/* Left column */}
       <div className="flex flex-col justify-center px-6 sm:px-8 py-8 space-y-4 md:col-span-1">
         <span className="bg-white text-black px-3 py-1 text-xs rounded-full w-fit">
           Trending Now
@@ -36,37 +38,27 @@ const Content = ({ movie, setTrailerOpen }: ContentProps) => {
           {movie.overview}
         </p>
 
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => setTrailerOpen(true)}
-            className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm"
-          >
-            <Play className="w-4 h-4" />
-            <span>Watch Trailer</span>
-          </button>
-
-          <button className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm">
-            <Info className="w-4 h-4" />
-            <span>More Info</span>
-          </button>
-        </div>
+        {/* Info & trailer buttons */}
+        <MovieInfo movieId={movie.id} playTrailer={playTrailer} />
       </div>
 
-      {/* Middle column (Play button at center, hidden on small screens) */}
+      {/* Middle column (big play button) */}
       <div className="hidden md:flex items-center justify-center col-span-1">
         <button
-          onClick={() => setTrailerOpen(true)}
+          onClick={() => playTrailer(movie.id)}
           className="bg-white/70 hover:bg-white p-6 rounded-full shadow-lg transition"
         >
           <Play className="w-10 h-10 text-black" />
         </button>
       </div>
 
-      {/* Right column (optional filler for layout balance) */}
+      {/* Right column (just for spacing/balance) */}
       <div className="hidden md:block"></div>
     </div>
   );
 };
 
 export default Content;
+
+
 
