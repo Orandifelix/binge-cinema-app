@@ -9,13 +9,47 @@ const Landing = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [trailerOpen, setTrailerOpen] = useState(false);
 
-  // Fetch movies
+  // Fetch movies (TMDB Trending)
   useEffect(() => {
-    fetch("http://localhost:5000/movies")
-      .then((res) => res.json())
-      .then((data) => setMovies(data))
-      .catch((err) => console.error("Error fetching movies:", err));
+    const fetchTrending = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_TMDB_BASE_URL}/trending/movie/week`,
+          {
+            headers: {
+              accept: "application/json",
+              Authorization: `Bearer ${import.meta.env.VITE_TMDB_READ_ACCESS_TOKEN}`,
+            },
+          }
+        );
+  
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+  
+        const data = await res.json();
+  
+        const mapped = (data.results || []).map((m: any) => ({
+          id: m.id,
+          title: m.title,
+          overview: m.overview,
+          year: m.release_date ? m.release_date.split("-")[0] : "N/A",
+          rating: m.vote_average,
+          backdrop: `https://image.tmdb.org/t/p/original${m.backdrop_path}`,
+          poster: `https://image.tmdb.org/t/p/w500${m.poster_path}`,
+          genre_ids: m.genre_ids,
+          trailerUrl: "",
+        }));
+  
+        setMovies(mapped);
+      } catch (err) {
+        console.error("Error fetching trending movies:", err);
+      }
+    };
+  
+    fetchTrending();
   }, []);
+  
 
   // Auto-slide every 6 seconds
   useEffect(() => {
@@ -27,7 +61,7 @@ const Landing = () => {
       );
     }, 6000);
 
-    return () => clearInterval(interval); // cleanup
+    return () => clearInterval(interval);
   }, [movies]);
 
   if (movies.length === 0) {
@@ -86,4 +120,3 @@ const Landing = () => {
 };
 
 export default Landing;
-
