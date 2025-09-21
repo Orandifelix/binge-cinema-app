@@ -49,7 +49,7 @@ const Home: React.FC = () => {
         <section key={idx}>
           <div className="px-4"> 
             <h1
-              className="px-2 lg:px-22 text-xl sm:text-2xl font-bold mb-4 
+              className="px-2 lg:px-2 text-xl sm:text-2xl font-bold mb-4 
                         border-l-4 pl-3 text-white"
               style={{
                 borderImage: "linear-gradient(to bottom, #FFD700, #FFA500) 1",
