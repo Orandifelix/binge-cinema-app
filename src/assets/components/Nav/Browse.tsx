@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { X, Home, Film, Tv, Star, PlayCircle, CalendarClock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Browse = () => {
   const [open, setOpen] = useState(false);
+
+  const closeMenu = () => setOpen(false);
 
   return (
     <>
@@ -11,7 +14,6 @@ const Browse = () => {
         onClick={() => setOpen(true)}
         className="flex items-center space-x-2 px-3 py-1.5 bg-white text-gray-900 rounded-md text-sm font-medium 
            shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -29,11 +31,11 @@ const Browse = () => {
       {/* Sidebar + Overlay */}
       {open && (
         <div className="fixed inset-0 z-50 flex">
-          {/* Sidebar (black) */}
+          {/* Sidebar */}
           <div className="w-64 bg-black text-white h-full shadow-lg p-4 overflow-y-auto relative z-50">
             {/* Close button */}
             <button
-              onClick={() => setOpen(false)}
+              onClick={closeMenu}
               className="p-2 hover:bg-gray-800 rounded-md mb-4"
             >
               <X className="w-5 h-5" />
@@ -41,34 +43,34 @@ const Browse = () => {
 
             {/* Menu */}
             <nav className="space-y-4">
-              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+              <Link to="/" onClick={closeMenu} className="flex items-center space-x-2 hover:text-indigo-400">
                 <Home className="w-5 h-5" />
                 <span>Home</span>
-              </a>
-              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+              </Link>
+              <Link to="/browse/movie" onClick={closeMenu} className="flex items-center space-x-2 hover:text-indigo-400">
                 <Film className="w-5 h-5" />
                 <span>Movies</span>
-              </a>
-              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+              </Link>
+              <Link to="/browse/tv" onClick={closeMenu} className="flex items-center space-x-2 hover:text-indigo-400">
                 <Tv className="w-5 h-5" />
                 <span>TV Shows</span>
-              </a>
-              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+              </Link>
+              <Link to="/browse/top_rated" onClick={closeMenu} className="flex items-center space-x-2 hover:text-indigo-400">
                 <Star className="w-5 h-5" />
                 <span>Top IMDB</span>
-              </a>
-              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+              </Link>
+              <Link to="/browse/latest" onClick={closeMenu} className="flex items-center space-x-2 hover:text-indigo-400">
                 <PlayCircle className="w-5 h-5" />
                 <span>Latest Movies</span>
-              </a>
-              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+              </Link>
+              <Link to="/browse/popular" onClick={closeMenu} className="flex items-center space-x-2 hover:text-indigo-400">
                 <Tv className="w-5 h-5" />
                 <span>Latest TV Shows</span>
-              </a>
-              <a href="#" className="flex items-center space-x-2 hover:text-indigo-400">
+              </Link>
+              <Link to="/browse/upcoming" onClick={closeMenu} className="flex items-center space-x-2 hover:text-indigo-400">
                 <CalendarClock className="w-5 h-5" />
                 <span>Coming Soon</span>
-              </a>
+              </Link>
             </nav>
 
             {/* Divider */}
@@ -103,20 +105,22 @@ const Browse = () => {
                 "Soap",
                 "War",
               ].map((genre) => (
-                <button
+                <Link
                   key={genre}
+                  to={`/genres?g=${encodeURIComponent(genre)}`}
+                  onClick={closeMenu}
                   className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-sm rounded-md"
                 >
                   {genre}
-                </button>
+                </Link>
               ))}
             </div>
           </div>
 
-          {/* Semi-transparent overlay (rest of screen) */}
+          {/* Overlay */}
           <div
             className="flex-1 bg-black/50"
-            onClick={() => setOpen(false)}
+            onClick={closeMenu}
           />
         </div>
       )}

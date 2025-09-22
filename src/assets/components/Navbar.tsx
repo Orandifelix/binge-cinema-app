@@ -2,6 +2,8 @@ import { useState } from "react";
 import Browse from "./Nav/Browse";
 import Search from "./Nav/Search";
 import Account from "./Nav/Account";
+import { Link } from "react-router-dom";
+
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -18,13 +20,13 @@ const Navbar = () => {
         </div>
 
         {/* Center - Logo */}
-        <h1
+        <Link to={"/"}
         className="text-lg font-bold italic text-white cursor-pointer
                   transition-all duration-200
                   hover:text-indigo-400 hover:scale-105 hover:drop-shadow-lg"
         >
         🎬 BingeCinema
-        </h1>
+        </Link>
 
         {/* Center - Search */}
         <Search />

@@ -1,18 +1,27 @@
-import BrowseType from "./assets/components/Pages/BrowseType"
-import Genres from "./assets/components/Pages/Genres"
-import Mainpage from "./assets/components/Pages/Mainpage"
-import MovieDetails from "./assets/components/Pages/MovieDetails"
+
+import { Routes, Route } from "react-router-dom";
+
+import BrowseType from "./assets/components/Pages/BrowseType";
+import Genres from "./assets/components/Pages/Genres";
+import Mainpage from "./assets/components/Pages/Mainpage";
+import MovieDetails from "./assets/components/Pages/MovieDetails";
 
 const App = () => {
   return (
-    <div>
+    <Routes>
+      {/* Home (Landing + Home) */}
+      <Route path="/" element={<Mainpage />} />
 
-   <Mainpage />
-   <MovieDetails />
-   <Genres />
-   <BrowseType />
-    </div>
-  )
-}
+      {/* Browse by type (Movies, TV, etc.) */}
+      <Route path="/browse/:type" element={<BrowseType />} />
 
-export default App
+      {/* Genres page */}
+      <Route path="/genres" element={<Genres />} />
+
+      {/* Movie details */}
+      <Route path="/movie/:id" element={<MovieDetails />} />
+    </Routes>
+  );
+};
+
+export default App;
