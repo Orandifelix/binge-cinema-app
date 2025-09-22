@@ -29,11 +29,13 @@ const MovieDetails = () => {
   }));
 
   return (
-    <div className="bg-gray-950 text-white min-h-screen">
-       <Navbar />
+    <div className="flex flex-col min-h-screen bg-gray-900 text-gray-900 font-sans">
+             <div className="px-18">
+      <Navbar />
+     </div>
 
       {/* Hero section */}
-      <div className="px-18"> 
+      <div className="px-24"> 
       <div
         className="relative w-full bg-cover bg-center  "
         style={{ backgroundImage: `url(${movie.backdrop})` }}
@@ -82,7 +84,7 @@ const MovieDetails = () => {
       </div>
 
       {/* Related movies */}
-      <div className="px-8 py-16">
+      <div className="px-2 py-16">
         <h2 className="text-xl font-semibold mb-4">You may also like</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
           {relatedMovies.map((rel) => (

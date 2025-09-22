@@ -5,7 +5,7 @@ const App = () => {
   return (
     <div>
 
-   {/* <Mainpage /> */}
+   <Mainpage />
    <MovieDetails />
     </div>
   )
