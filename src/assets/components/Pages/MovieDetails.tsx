@@ -29,7 +29,7 @@ const MovieDetails = () => {
   }));
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-gray-900 font-sans">
+    <div className="flex flex-col min-h-screen bg-gray-900 text-white font-sans">
              <div className="px-18">
       <Navbar />
      </div>
