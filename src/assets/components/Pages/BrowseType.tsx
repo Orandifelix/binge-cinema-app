@@ -1,14 +1,15 @@
-// src/assets/components/Pages/BrowseType.tsx
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import { fetchMoviesByType } from "../../../lib/tmdb";
+import { Play, Info } from "lucide-react";
 
 const BrowseType = () => {
   const { type } = useParams<{ type: string }>();
   const [movies, setMovies] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!type) return;
@@ -19,9 +20,15 @@ const BrowseType = () => {
       .finally(() => setLoading(false));
   }, [type]);
 
+  const goToDetails = (movieId: number) => {
+    navigate(`/movie/${movieId}`);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
-      <div className="px-18"><Navbar /></div>
+      <div className="px-18">
+        <Navbar />
+      </div>
 
       <main className="flex-1 px-6 md:px-24 py-8">
         <h1 className="text-2xl font-bold mb-6">
@@ -33,15 +40,42 @@ const BrowseType = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
             {movies.map((m: any) => (
-              <div key={m.id} className="bg-gray-800 rounded-lg overflow-hidden shadow hover:scale-105 transition">
+              <div
+                key={m.id}
+                className="relative group bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105"
+              >
+                {/* Poster */}
                 <img
-                  src={m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : (m.backdrop_path ? `https://image.tmdb.org/t/p/w500${m.backdrop_path}` : "")}
+                  src={
+                    m.poster_path
+                      ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
+                      : m.backdrop_path
+                      ? `https://image.tmdb.org/t/p/w500${m.backdrop_path}`
+                      : ""
+                  }
                   alt={m.title ?? m.name}
                   className="w-full h-56 object-cover"
                 />
-                <div className="p-2 text-sm">
-                  <div className="font-semibold truncate">{m.title ?? m.name}</div>
-                  <div className="text-gray-400 text-xs">{(m.release_date ?? m.first_air_date)?.slice(0,4) ?? ""}</div>
+
+                {/* Title */}
+                <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-2 py-1 text-sm truncate">
+                  {m.title ?? m.name}
+                </div>
+
+                {/* Hover buttons */}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-3 transition-opacity duration-300">
+                  <button
+                    onClick={() => goToDetails(m.id)}
+                    className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition"
+                  >
+                    <Play size={16} /> Play
+                  </button>
+                  <button
+                    onClick={() => goToDetails(m.id)}
+                    className="flex items-center gap-1 px-3 py-1 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-600 transition"
+                  >
+                    <Info size={16} /> Info
+                  </button>
                 </div>
               </div>
             ))}
@@ -55,6 +89,7 @@ const BrowseType = () => {
 };
 
 export default BrowseType;
+
 
 
 
