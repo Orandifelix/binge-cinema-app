@@ -76,7 +76,7 @@ const Account = () => {
       {/* If user logged in, show their username/email + logout */}
       {user ? (
         <div className="flex items-center space-x-3">
-          <span className="text-sm font-semibold text-gray-800">
+          <span className="text-sm font-semibold text-gray-600">
             {user.displayName || user.email}
           </span>
           <button
