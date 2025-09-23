@@ -1,0 +1,127 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  # ==========================
+  # DEV BRANCH (6 JOBS)
+  # ==========================
+  install-dev:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+
+  lint-dev:
+    if: github.ref == 'refs/heads/dev'
+    needs: install-dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run lint
+
+  test-dev:
+    if: github.ref == 'refs/heads/dev'
+    needs: lint-dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run test -- --coverage
+
+  build-dev:
+    if: github.ref == 'refs/heads/dev'
+    needs: test-dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run build
+
+  typecheck-dev:
+    if: github.ref == 'refs/heads/dev'
+    needs: build-dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run typecheck
+
+  preview-deploy:
+    if: github.ref == 'refs/heads/dev'
+    needs: typecheck-dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-preview
+          path: dist
+
+  # ==========================
+  # MAIN BRANCH (5 JOBS)
+  # ==========================
+  install-main:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+
+  lint-main:
+    if: github.ref == 'refs/heads/main'
+    needs: install-main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run lint
+
+  test-main:
+    if: github.ref == 'refs/heads/main'
+    needs: lint-main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run test -- --coverage
+
+  build-main:
+    if: github.ref == 'refs/heads/main'
+    needs: test-main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run build
+
+  # docker-deploy-main:
+  #   if: github.ref == 'refs/heads/main'
+  #   needs: build-main
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - name: Log in to DockerHub
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
+
+  #     - name: Build and Push Docker Image
+  #       run: |
+  #         docker build -t ${{ secrets.DOCKER_USERNAME }}/binge-cinema:latest .
+  #         docker push ${{ secrets.DOCKER_USERNAME }}/binge-cinema:latest
+
+  #     - name: Deploy to May
+  #       run: |
+  #         echo "Deploying app to May..."
+  #         # Replace this with actual deploy command (kubectl, ssh, etc.)
+  #         # Example if May is a server:
+  #         # ssh user@may 'docker pull ${{ secrets.DOCKER_USERNAME }}/binge-cinema:latest && docker run -d -p 80:80 binge-cinema:latest'
