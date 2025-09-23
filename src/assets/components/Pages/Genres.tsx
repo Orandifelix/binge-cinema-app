@@ -6,10 +6,17 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 
-const Genres = () => {
+// Define the type for movies returned by fetchMoviesByGenre
+interface GenreMovie {
+  id: number;
+  title: string;
+  poster_path: string;
+}
+
+const Genres: React.FC = () => {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selected, setSelected] = useState<Genre | null>(null);
-  const [movies, setMovies] = useState<any[]>([]);
+  const [movies, setMovies] = useState<GenreMovie[]>([]);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -32,16 +39,26 @@ const Genres = () => {
           }
         }
       })
-      .catch(console.error);
+      .catch((err: unknown) => {
+        if (err instanceof Error) {
+          console.error("fetchGenres error:", err.message);
+        } else {
+          console.error("fetchGenres unknown error:", err);
+        }
+      });
   }, [genreQuery]);
 
   const handleSelect = async (genre: Genre) => {
     setSelected(genre);
     try {
-      const data = await fetchMoviesByGenre(genre.id, 30);
+      const data: GenreMovie[] = await fetchMoviesByGenre(genre.id, 30);
       setMovies(data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("fetchMoviesByGenre error:", err.message);
+      } else {
+        console.error("fetchMoviesByGenre unknown error:", err);
+      }
     }
   };
 
@@ -76,7 +93,7 @@ const Genres = () => {
             Best of {selected.name}
           </h2>
           <div className="grid grid-cols-2 px-6 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-            {movies.map((movie) => (
+            {movies.map((movie: GenreMovie) => (
               <div
                 key={movie.id}
                 className="relative group bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105"
