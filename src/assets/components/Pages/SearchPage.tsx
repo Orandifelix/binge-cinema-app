@@ -3,10 +3,18 @@ import { useEffect, useState } from "react";
 import Footer from "../Footer";
 import Navbar from "../Navbar";
 
-const SearchPage = () => {
+// Movie type from TMDB
+interface MovieType {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  release_date?: string;
+}
+
+const SearchPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
-  const [movies, setMovies] = useState<any[]>([]);
+  const [movies, setMovies] = useState<MovieType[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -30,7 +38,8 @@ const SearchPage = () => {
             },
           }
         );
-        const data = await res.json();
+
+        const data: { results: MovieType[] } = await res.json();
         setMovies(data.results || []);
       } catch (err) {
         console.error("Error fetching movies:", err);
@@ -102,6 +111,7 @@ const SearchPage = () => {
 };
 
 export default SearchPage;
+
 
 
 
