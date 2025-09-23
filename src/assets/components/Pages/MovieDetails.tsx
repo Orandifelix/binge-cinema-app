@@ -8,21 +8,47 @@ import {
   fetchSimilarMovies,
   fetchMovieTrailer,
 } from "../../../lib/tmdb";
-import PlayModal from "../../components/./Landing/Play_modal";
+import PlayModal from "../../components/Landing/Play_modal";
 
-const MovieDetails = () => {
+// Types
+interface GenreItem {
+  id: number;
+  name: string;
+}
+
+interface MovieDetailsType {
+  id: number;
+  title: string;
+  overview: string;
+  backdrop_path: string;
+  poster_path: string;
+  vote_average: number;
+  runtime: number;
+  release_date: string;
+  genres: GenreItem[];
+}
+
+interface SimilarMovieType {
+  id: number;
+  title: string;
+  poster_path: string;
+  release_date: string;
+}
+
+const MovieDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const movieId = Number(id);
   const navigate = useNavigate();
 
-  const [movie, setMovie] = useState<any | null>(null);
-  const [similar, setSimilar] = useState<any[]>([]);
+  const [movie, setMovie] = useState<MovieDetailsType | null>(null);
+  const [similar, setSimilar] = useState<SimilarMovieType[]>([]);
   const [loading, setLoading] = useState(true);
 
   // trailer modal state
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [trailerUrl, setTrailerUrl] = useState("");
 
+  // Fetch movie details & similar movies
   useEffect(() => {
     if (!movieId) return;
     setLoading(true);
@@ -32,10 +58,14 @@ const MovieDetails = () => {
         setMovie(details);
         setSimilar(related);
       })
-      .catch(console.error)
+      .catch((err: unknown) => {
+        if (err instanceof Error) console.error(err.message);
+        else console.error("Unknown error", err);
+      })
       .finally(() => setLoading(false));
   }, [movieId]);
 
+  // Play trailer
   const playTrailer = async (id: number) => {
     try {
       const url = await fetchMovieTrailer(id);
@@ -120,7 +150,7 @@ const MovieDetails = () => {
                 </p>
                 <p>
                   <span className="font-semibold">Genres:</span>{" "}
-                  {movie.genres.map((g: any) => g.name).join(", ")}
+                  {movie.genres.map((g: GenreItem) => g.name).join(", ")}
                 </p>
               </div>
             </div>
@@ -131,7 +161,7 @@ const MovieDetails = () => {
         <div className="px-2 py-16">
           <h2 className="text-xl font-semibold mb-4">You may also like</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-            {similar.map((rel) => (
+            {similar.map((rel: SimilarMovieType) => (
               <div
                 key={rel.id}
                 className="bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition"
@@ -180,5 +210,3 @@ const MovieDetails = () => {
 };
 
 export default MovieDetails;
-
-
