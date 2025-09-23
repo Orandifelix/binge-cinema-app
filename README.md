@@ -68,7 +68,7 @@ App runs on http://localhost:5173/
 
 ```
 
-🧪 Testing
+## 🧪 Testing
 
 We use Vitest and React Testing Library.
 
@@ -85,7 +85,7 @@ Run tests on watch mode
 npm run test:watch
 ```
 
-⚙️ GitHub Actions (CI/CD)
+## ⚙️ GitHub Actions (CI/CD)
 
 This project uses GitHub Actions to automate:
 
@@ -102,7 +102,7 @@ npm run build
 
 ```
 
-🛠️ Possible Improvements
+## 🛠️ Possible Improvements
 
 🔐 User authentication (login, favorites, watchlist)
 
@@ -112,7 +112,7 @@ npm run build
 
 ⚡ Server-side rendering (SSR) with Next.js or Remix
 
-🤝 Contributing
+## 🤝 Contributing
 
 Fork the repo
 
@@ -124,6 +124,6 @@ Push branch: git push origin feature/awesome-feature
 
 Open a Pull Request 🎉
 
-📜 License
+## 📜 License
 
 MIT © 2025 [Orandi Felix]
