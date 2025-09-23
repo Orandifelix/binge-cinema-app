@@ -21,7 +21,10 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    /* 👇 Add this for Vitest globals like describe/it/expect */
+    "types": ["vitest/globals"]
   },
-  "include": ["src"]
+  "include": ["src", "src/**/*.test.ts", "src/**/*.test.tsx"]
 }
