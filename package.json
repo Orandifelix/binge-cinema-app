@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+     "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings=0"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
