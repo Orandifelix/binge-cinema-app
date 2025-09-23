@@ -6,7 +6,7 @@ const getHeaders = () => ({
 });
 
 export type Genre = { id: number; name: string };
-export type TMDBMovie = any; // keep flexible for now
+export type TMDBMovie = any; //   flexible atm
 
 export async function fetchGenres(): Promise<Genre[]> {
   const res = await fetch(`${BASE}/genre/movie/list`, { headers: getHeaders() });

@@ -38,7 +38,7 @@ const Genres = () => {
   const handleSelect = async (genre: Genre) => {
     setSelected(genre);
     try {
-      const data = await fetchMoviesByGenre(genre.id, 20);
+      const data = await fetchMoviesByGenre(genre.id, 30);
       setMovies(data);
     } catch (err) {
       console.error(err);
