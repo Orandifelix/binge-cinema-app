@@ -36,13 +36,17 @@ const Account = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setOpen(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     } finally {
       setLoading(false);
     }
   };
-
+  
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -53,20 +57,23 @@ const Account = () => {
     setLoading(true);
     try {
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
-
-      // Save username to Firebase profile
+  
       await updateProfile(userCred.user, {
         displayName: username,
       });
-
+  
       setOpen(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     } finally {
       setLoading(false);
     }
   };
-
+  
   const handleLogout = async () => {
     await signOut(auth);
   };

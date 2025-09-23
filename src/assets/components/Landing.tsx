@@ -16,13 +16,39 @@ interface Movie {
   trailerUrl?: string | null;
 }
 
-const Landing = () => {
+// TMDB API types
+interface TMDBTrendingMovie {
+  id: number;
+  title: string;
+}
+
+interface TMDBMovieDetails {
+  id: number;
+  title: string;
+  release_date?: string;
+  runtime?: number;
+  genres?: { id: number; name: string }[];
+  vote_average?: number;
+  overview: string;
+  backdrop_path?: string;
+  videos?: {
+    results: {
+      id: string;
+      key: string;
+      name: string;
+      site: string;
+      type: string;
+    }[];
+  };
+}
+
+const Landing: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [trailerUrl, setTrailerUrl] = useState<string>("");
 
-  // ✅ Fetch trending movies (with details + trailer)
+  // Fetch trending movies with details + trailer
   useEffect(() => {
     const fetchTrendingMovies = async () => {
       try {
@@ -34,10 +60,10 @@ const Landing = () => {
         });
 
         if (!res.ok) throw new Error(`TMDB API error: ${res.status}`);
-        const data = await res.json();
+        const data: { results: TMDBTrendingMovie[] } = await res.json();
 
-        const detailedMovies = await Promise.all(
-          data.results.map(async (movie: any) => {
+        const detailedMovies: Movie[] = await Promise.all(
+          data.results.map(async (movie) => {
             try {
               const detailsRes = await fetch(
                 `https://api.themoviedb.org/3/movie/${movie.id}?append_to_response=videos`,
@@ -49,10 +75,10 @@ const Landing = () => {
                 }
               );
 
-              const details = await detailsRes.json();
+              const details: TMDBMovieDetails = await detailsRes.json();
 
-              const trailer = details.videos?.results?.find(
-                (vid: any) => vid.type === "Trailer" && vid.site === "YouTube"
+              const trailer = details.videos?.results.find(
+                (vid) => vid.type === "Trailer" && vid.site === "YouTube"
               );
 
               return {
@@ -75,7 +101,7 @@ const Landing = () => {
           })
         );
 
-        setMovies(detailedMovies.filter(Boolean) as Movie[]);
+        setMovies(detailedMovies.filter((m): m is Movie => m !== null));
       } catch (err) {
         console.error("Error fetching trending movies:", err);
       }
@@ -84,7 +110,7 @@ const Landing = () => {
     fetchTrendingMovies();
   }, []);
 
-  // ✅ Open trailer modal
+  // Open trailer modal
   const playTrailer = (movieId: number) => {
     const movie = movies.find((m) => m.id === movieId);
     if (movie?.trailerUrl) {
@@ -95,7 +121,7 @@ const Landing = () => {
     }
   };
 
-  // ✅ Auto-slide carousel
+  // Auto-slide carousel
   useEffect(() => {
     if (movies.length === 0) return;
     const interval = setInterval(() => {
@@ -114,29 +140,19 @@ const Landing = () => {
 
   const movie = movies[currentIndex];
 
-  const prevMovie = () => {
-    setCurrentIndex((prev) => (prev === 0 ? movies.length - 1 : prev - 1));
-  };
-
-  const nextMovie = () => {
-    setCurrentIndex((prev) => (prev === movies.length - 1 ? 0 : prev + 1));
-  };
+  const prevMovie = () => setCurrentIndex((prev) => (prev === 0 ? movies.length - 1 : prev - 1));
+  const nextMovie = () => setCurrentIndex((prev) => (prev === movies.length - 1 ? 0 : prev + 1));
 
   return (
     <section
       className="relative w-full h-screen bg-cover bg-center transition-all duration-700"
       style={{ backgroundImage: `url(${movie.backdrop})` }}
     >
-      {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/50"></div>
 
-      {/* Navigation Arrows */}
       <Next_previous prevMovie={prevMovie} nextMovie={nextMovie} />
-
-      {/* Content */}
       <Content movie={movie} playTrailer={playTrailer} />
 
-      {/* Pagination Dots */}
       <div className="absolute bottom-4 sm:bottom-6 w-full flex justify-center space-x-2 z-20">
         {movies.map((_, idx) => (
           <button
@@ -149,7 +165,6 @@ const Landing = () => {
         ))}
       </div>
 
-      {/* Trailer Modal */}
       <PlayModal
         trailerOpen={trailerOpen}
         trailerUrl={trailerUrl}
@@ -160,3 +175,4 @@ const Landing = () => {
 };
 
 export default Landing;
+
