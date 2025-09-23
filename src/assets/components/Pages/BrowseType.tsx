@@ -5,18 +5,34 @@ import Footer from "../Footer";
 import { fetchMoviesByType } from "../../../lib/tmdb";
 import { Play, Info } from "lucide-react";
 
-const BrowseType = () => {
+// Define a type for the movies returned by fetchMoviesByType
+interface MovieItem {
+  id: number;
+  title?: string;
+  name?: string;
+  poster_path?: string;
+  backdrop_path?: string;
+}
+
+const BrowseType: React.FC = () => {
   const { type } = useParams<{ type: string }>();
-  const [movies, setMovies] = useState<any[]>([]);
+  const [movies, setMovies] = useState<MovieItem[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!type) return;
+
     setLoading(true);
     fetchMoviesByType(type, 60)
-      .then((m) => setMovies(m))
-      .catch((err) => console.error("fetchMoviesByType:", err))
+      .then((m: MovieItem[]) => setMovies(m))
+      .catch((err: unknown) => {
+        if (err instanceof Error) {
+          console.error("fetchMoviesByType:", err.message);
+        } else {
+          console.error("fetchMoviesByType: Unknown error", err);
+        }
+      })
       .finally(() => setLoading(false));
   }, [type]);
 
@@ -39,7 +55,7 @@ const BrowseType = () => {
           <div className="py-12 text-center">Loading...</div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-            {movies.map((m: any) => (
+            {movies.map((m: MovieItem) => (
               <div
                 key={m.id}
                 className="relative group bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105"
@@ -53,13 +69,13 @@ const BrowseType = () => {
                       ? `https://image.tmdb.org/t/p/w500${m.backdrop_path}`
                       : ""
                   }
-                  alt={m.title ?? m.name}
+                  alt={m.title ?? m.name ?? "Untitled"}
                   className="w-full h-56 object-cover"
                 />
 
                 {/* Title */}
                 <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-2 py-1 text-sm truncate">
-                  {m.title ?? m.name}
+                  {m.title ?? m.name ?? "Untitled"}
                 </div>
 
                 {/* Hover buttons */}
@@ -89,6 +105,7 @@ const BrowseType = () => {
 };
 
 export default BrowseType;
+
 
 
 
