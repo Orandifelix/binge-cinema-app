@@ -2,18 +2,38 @@ import { useEffect, useState } from "react";
 import type { Genre } from "../../../lib/tmdb";
 import { fetchGenres, fetchMoviesByGenre } from "../../../lib/tmdb";
 import { Play, Info } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../Navbar";
+import Footer from "../Footer";
 
 const Genres = () => {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selected, setSelected] = useState<Genre | null>(null);
   const [movies, setMovies] = useState<any[]>([]);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  // Get genre name from query param (?g=Action)
+  const genreQuery = searchParams.get("g");
+
+  // Load genres
   useEffect(() => {
-    fetchGenres().then(setGenres).catch(console.error);
-  }, []);
+    fetchGenres()
+      .then((allGenres) => {
+        setGenres(allGenres);
+
+        // If URL has ?g=xxx, auto-select it
+        if (genreQuery) {
+          const match = allGenres.find(
+            (g) => g.name.toLowerCase() === genreQuery.toLowerCase()
+          );
+          if (match) {
+            handleSelect(match);
+          }
+        }
+      })
+      .catch(console.error);
+  }, [genreQuery]);
 
   const handleSelect = async (genre: Genre) => {
     setSelected(genre);
@@ -26,7 +46,7 @@ const Genres = () => {
   };
 
   const goToDetails = (movieId: number) => {
-    navigate(`/movie/${movieId}`); // Your MovieDetails route
+    navigate(`/movie/${movieId}`);
   };
 
   return (
@@ -51,11 +71,11 @@ const Genres = () => {
 
       {/* Movies */}
       {selected && (
-        <>
-          <h2 className="text-xl font-semibold mb-4">
-            {/* Best of {selected.name} */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4 px-6">
+            Best of {selected.name}
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 px-6 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
             {movies.map((movie) => (
               <div
                 key={movie.id}
@@ -91,13 +111,15 @@ const Genres = () => {
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
+      <Footer />
     </div>
   );
 };
 
 export default Genres;
+
 
 
 
