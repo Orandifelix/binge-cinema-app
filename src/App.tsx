@@ -5,6 +5,7 @@ import BrowseType from "./assets/components/Pages/BrowseType";
 import Genres from "./assets/components/Pages/Genres";
 import Mainpage from "./assets/components/Pages/Mainpage";
 import MovieDetails from "./assets/components/Pages/MovieDetails";
+import SearchPage from "./assets/components/Pages/SearchPage";
 
 const App = () => {
   return (
@@ -20,6 +21,8 @@ const App = () => {
 
       {/* Movie details */}
       <Route path="/movie/:id" element={<MovieDetails />} />
+      {/* {Search page} */}
+      <Route path="/search" element={<SearchPage />} />
     </Routes>
   );
 };

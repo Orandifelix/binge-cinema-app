@@ -1,9 +1,24 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 const Search = () => {
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
+    }
+  };
+
   return (
     <div className="hidden md:flex flex-1 max-w-md mx-4">
       <div className="relative w-full">
         <input
           type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Search Movies, Shows..."
           className="w-full pl-10 pr-4 py-1.5 rounded-full 
                      bg-gray-100 border border-gray-300 
@@ -30,5 +45,4 @@ const Search = () => {
   );
 };
 
-
-export default Search
+export default Search;
