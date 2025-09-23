@@ -34,6 +34,42 @@ export async function fetchMoviesByGenre(genreId: number, limit = 40): Promise<T
   return results.slice(0, limit);
 }
 
+// Trailer fetch 
+export async function fetchMovieTrailer(id: number): Promise<string | null> {
+  const res = await fetch(`${BASE}/movie/${id}/videos?language=en-US`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error(`fetchMovieTrailer: ${res.status}`);
+  const data = await res.json();
+
+  const trailer = (data.results ?? []).find(
+    (v: any) => v.type === "Trailer" && v.site === "YouTube"
+  );
+  return trailer ? `https://www.youtube.com/embed/${trailer.key}` : null;
+}
+
+ 
+
+// Get details for a specific movie
+export async function fetchMovieDetails(id: number): Promise<TMDBMovie> {
+  const res = await fetch(`${BASE}/movie/${id}?language=en-US`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error(`fetchMovieDetails: ${res.status}`);
+  return res.json();
+}
+
+// Get similar movies for a specific movie
+export async function fetchSimilarMovies(id: number, limit = 12): Promise<TMDBMovie[]> {
+  const res = await fetch(`${BASE}/movie/${id}/similar?language=en-US&page=1`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error(`fetchSimilarMovies: ${res.status}`);
+  const data = await res.json();
+  return (data.results ?? []).slice(0, limit);
+}
+
+
 /**
  * Fetch "type" lists like popular, top_rated, upcoming, or generic discover by media type.
  * type param examples: "movie", "tv", "top_rated", "popular", "upcoming", "latest"
