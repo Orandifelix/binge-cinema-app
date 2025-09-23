@@ -1,77 +1,76 @@
-import Footer from "../Footer";
-import Navbar from "../Navbar";
+import { useEffect, useState } from "react";
+import type { Genre } from "../../../lib/tmdb";
+import { fetchGenres, fetchMoviesByGenre } from "../../../lib/tmdb";
+
 
 const Genres = () => {
-  const genres = [
-    "Action",
-    "Comedy",
-    "Drama",
-    "Horror",
-    "Romance",
-    "Crime",
-    "Sci-Fi & Fantasy",
-    "Thriller",
-    "Western",
-    "Documentary",
-    "Adventure",
-    "Animations",
-    "Biography",
-    "War & Politics",
-    "Music",
-    "Mystery",
-    "Family",
-    "Reality",
-    "Kids",
-    "History",
-    "Soap",
-    "War",
-  ];
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [selected, setSelected] = useState<Genre | null>(null);
+  const [movies, setMovies] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchGenres().then(setGenres).catch(console.error);
+  }, []);
+
+  const handleSelect = async (genre: Genre) => {
+    setSelected(genre);
+    try {
+      const data = await fetchMoviesByGenre(genre.id, 20);
+      setMovies(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-950 text-white font-sans">
-        <div className="px-20"> 
-      <Navbar />
-        </div>
-      <main className="flex-1 px-24 py-8">
-        <h1 className="text-2xl font-bold mb-6">Browse by Genre</h1>
+    <div className="bg-gray-900 text-white min-h-screen p-6">
+      <h1 className="text-2xl font-bold mb-6">Browse by Genre</h1>
 
-        {/* Genres as clickable words */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-10">
-          {genres.map((genre, index) => (
-            <span
-              key={index}
-              className="cursor-pointer text-gray-300 hover:text-red-500 hover:underline text-lg transition"
-              onClick={() => console.log(`Selected: ${genre}`)}
-            >
-              {genre}
-            </span>
-          ))}
-        </div>
+      {/* Genres List */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-10">
+        {genres.map((g) => (
+          <span
+            key={g.id}
+            className={`cursor-pointer ${
+              selected?.id === g.id ? "text-red-500" : "text-gray-300"
+            } hover:text-red-400 hover:underline text-lg transition`}
+            onClick={() => handleSelect(g)}
+          >
+            {g.name}
+          </span>
+        ))}
+      </div>
 
-        {/* Movies placeholder */}
-        <div>
+      {/* Movies */}
+      {selected && (
+        <>
           <h2 className="text-xl font-semibold mb-4">
-            40 Movies of the type picked
+            Best of {selected.name}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-            {Array.from({ length: 12 }).map((_, i) => (
+            {movies.map((movie) => (
               <div
-                key={i}
-                className="bg-gray-900 h-40 rounded-lg flex items-center justify-center text-gray-500"
+                key={movie.id}
+                className="bg-gray-800 rounded-lg overflow-hidden"
               >
-                Poster {i + 1}
+                <img
+                  src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
+                  alt={movie.title}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-2 text-sm">{movie.title}</div>
               </div>
             ))}
           </div>
-        </div>
-      </main>
-
-      <Footer />
+        </>
+      )}
     </div>
   );
 };
 
 export default Genres;
+
+
 
 
 
