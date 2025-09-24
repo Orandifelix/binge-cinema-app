@@ -16,7 +16,7 @@ const Search = () => {
   }, [query, navigate]);
 
   return (
-    <div className="hidden md:flex flex-1 max-w-md mx-4">
+    <div className="flex flex-1 max-w-md mx-4">
       <div className="relative w-full">
         <input
           type="text"

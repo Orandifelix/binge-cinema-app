@@ -29,7 +29,10 @@ const Navbar = () => {
         </Link>
 
         {/* Center - Search */}
-        <Search />
+        <div className="hidden sm:flex flex-1 max-w-md mx-4">
+          <Search />
+        </div>
+
 
         {/* Right - Account + Hamburger */}
         <div className="flex items-center space-x-3">
@@ -62,18 +65,28 @@ const Navbar = () => {
         </div>
       </div>
 
-        {/* Mobile dropdown */}
-        {menuOpen && (
-          <div className="md:hidden bg-gray-900 text-gray-400 border-t border-gray-700 px-4 py-2 space-y-2">
-            {/* Mobile Search */}
-            <Search />
+      {/* Mobile dropdown */}
+      {menuOpen && (
+        <div className="md:hidden bg-gray-900 text-gray-400 border-t border-gray-700 px-4 py-4 space-y-4">
 
-            {/* Mobile Account (reuses same component with modal) */}
-            <div>
-              <Account />
+          {/* Mobile Search */}
+          <div className="flex justify-center">
+            <div className="w-4/5">
+              <Search />
             </div>
           </div>
-        )}
+
+          {/* Browse + Account */}
+          <div className="flex justify-between space-y-4">
+            {/* Mobile Browse */}
+            <Browse />
+
+            {/* Mobile Account */}
+            <Account />
+          </div>
+        </div>
+      )}
+
 
     </nav>
   );
