@@ -5,13 +5,36 @@ const getHeaders = () => ({
   accept: "application/json",
 });
 
+// --- TYPES ---
 export type Genre = { id: number; name: string };
-export type TMDBMovie = any; //   flexible atm
+
+export interface TMDBMovie {
+  id: number;
+  title: string;
+  overview?: string;
+  release_date?: string;
+  poster_path?: string;
+  backdrop_path?: string;
+  vote_average?: number;
+  runtime?: number;
+  genres?: Genre[];
+  [key: string]: unknown; // fallback for other fields
+}
+
+export interface TMDBVideo {
+  id: string;
+  key: string;
+  name: string;
+  site: string;
+  type: string;
+}
+
+// --- FUNCTIONS ---
 
 export async function fetchGenres(): Promise<Genre[]> {
   const res = await fetch(`${BASE}/genre/movie/list`, { headers: getHeaders() });
   if (!res.ok) throw new Error(`fetchGenres: ${res.status}`);
-  const data = await res.json();
+  const data: { genres: Genre[] } = await res.json();
   return data.genres ?? [];
 }
 
@@ -21,54 +44,41 @@ export async function fetchGenres(): Promise<Genre[]> {
 export async function fetchMoviesByGenre(genreId: number, limit = 40): Promise<TMDBMovie[]> {
   const results: TMDBMovie[] = [];
   let page = 1;
-  // TMDB pages are 20 items each. Stop after 5 pages to avoid too many requests.
+
   while (results.length < limit && page <= 5) {
     const res = await fetch(`${BASE}/discover/movie?with_genres=${genreId}&language=en-US&page=${page}`, {
       headers: getHeaders(),
     });
     if (!res.ok) throw new Error(`fetchMoviesByGenre: ${res.status}`);
-    const data = await res.json();
+    const data: { results: TMDBMovie[] } = await res.json();
     results.push(...(data.results ?? []));
     page++;
   }
+
   return results.slice(0, limit);
 }
 
-// Trailer fetch 
 export async function fetchMovieTrailer(id: number): Promise<string | null> {
-  const res = await fetch(`${BASE}/movie/${id}/videos?language=en-US`, {
-    headers: getHeaders(),
-  });
+  const res = await fetch(`${BASE}/movie/${id}/videos?language=en-US`, { headers: getHeaders() });
   if (!res.ok) throw new Error(`fetchMovieTrailer: ${res.status}`);
-  const data = await res.json();
 
-  const trailer = (data.results ?? []).find(
-    (v: any) => v.type === "Trailer" && v.site === "YouTube"
-  );
+  const data: { results: TMDBVideo[] } = await res.json();
+  const trailer = data.results.find((v) => v.type === "Trailer" && v.site === "YouTube");
   return trailer ? `https://www.youtube.com/embed/${trailer.key}` : null;
 }
 
- 
-
-// Get details for a specific movie
 export async function fetchMovieDetails(id: number): Promise<TMDBMovie> {
-  const res = await fetch(`${BASE}/movie/${id}?language=en-US`, {
-    headers: getHeaders(),
-  });
+  const res = await fetch(`${BASE}/movie/${id}?language=en-US`, { headers: getHeaders() });
   if (!res.ok) throw new Error(`fetchMovieDetails: ${res.status}`);
   return res.json();
 }
 
-// Get similar movies for a specific movie
 export async function fetchSimilarMovies(id: number, limit = 12): Promise<TMDBMovie[]> {
-  const res = await fetch(`${BASE}/movie/${id}/similar?language=en-US&page=1`, {
-    headers: getHeaders(),
-  });
+  const res = await fetch(`${BASE}/movie/${id}/similar?language=en-US&page=1`, { headers: getHeaders() });
   if (!res.ok) throw new Error(`fetchSimilarMovies: ${res.status}`);
-  const data = await res.json();
+  const data: { results: TMDBMovie[] } = await res.json();
   return (data.results ?? []).slice(0, limit);
 }
-
 
 /**
  * Fetch "type" lists like popular, top_rated, upcoming, or generic discover by media type.
@@ -85,8 +95,7 @@ export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBM
       case "top_rated":
         return "/movie/top_rated";
       case "latest":
-        // /movie/latest returns single item — fallback to now_playing/popular
-        return "/movie/now_playing";
+        return "/movie/now_playing"; // latest returns single movie, fallback
       case "popular":
         return "/movie/popular";
       case "upcoming":
@@ -96,24 +105,25 @@ export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBM
       case "movie":
         return "/discover/movie?sort_by=popularity.desc";
       default:
-        // try discover with type as part of path
-        return `/discover/movie?sort_by=popularity.desc`;
+        return "/discover/movie?sort_by=popularity.desc";
     }
   };
 
   const baseEndpoint = endpointForType(type);
 
   while (results.length < limit && page <= maxPages) {
-    const url =
-      baseEndpoint.includes("?") ?
-        `${BASE}${baseEndpoint}&page=${page}` :
-        `${BASE}${baseEndpoint}?page=${page}`;
+    const url = baseEndpoint.includes("?")
+      ? `${BASE}${baseEndpoint}&page=${page}`
+      : `${BASE}${baseEndpoint}?page=${page}`;
+
     const res = await fetch(url, { headers: getHeaders() });
     if (!res.ok) throw new Error(`fetchMoviesByType '${type}': ${res.status}`);
-    const data = await res.json();
-    // different endpoints use `results` or a single object; normalize
-    if (Array.isArray(data.results)) results.push(...data.results);
-    else if (Array.isArray(data)) results.push(...data);
+
+    const data: { results?: TMDBMovie[] } | TMDBMovie[] = await res.json();
+
+    if (Array.isArray(data)) results.push(...data);
+    else if (Array.isArray(data.results)) results.push(...data.results);
+
     page++;
   }
 
