@@ -32,6 +32,7 @@ Includes **unit testing with Vitest + React Testing Library** and automated pipe
 
 ## 📂 Project Structure
 
+```
 BINGE-CINEMA-APP/
 │── .github/workflows/ # GitHub Actions CI/CD configs
 │── public/ # Public assets (favicon, index.html, etc.)
@@ -57,6 +58,8 @@ BINGE-CINEMA-APP/
 │── tsconfig.json # TypeScript config
 │── package.json # Dependencies & scripts
 │── README.md # Project documentation
+
+```
 
 ## ⚡ Getting Started
 
