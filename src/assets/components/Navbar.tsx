@@ -62,19 +62,19 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile dropdown */}
-      {menuOpen && (
-        <div className="md:hidden bg-gray-900 text-gray-400 border-t border-gray-700 px-4 py-2 space-y-2">
-          <input
-            type="text"
-            placeholder="Search Movies, Shows..."
-            className="w-full pl-10 pr-4 py-1.5 rounded-full bg-white text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-          />
-          <button className="w-full text-left p-2 rounded-md bg-white text-gray-900 hover:bg-gray-200">
-            Account
-          </button>
-        </div>
-      )}
+        {/* Mobile dropdown */}
+        {menuOpen && (
+          <div className="md:hidden bg-gray-900 text-gray-400 border-t border-gray-700 px-4 py-2 space-y-2">
+            {/* Mobile Search */}
+            <Search />
+
+            {/* Mobile Account (reuses same component with modal) */}
+            <div>
+              <Account />
+            </div>
+          </div>
+        )}
+
     </nav>
   );
 };

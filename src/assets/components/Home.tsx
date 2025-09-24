@@ -92,40 +92,49 @@ const Section: React.FC<SectionProps> = ({ title, endpoint }) => {
 
   return (
     <section className="space-y-4">
-      <div className="px-4">
+      {/* Section Title */}
+      <div className="px-2 sm:px-4">
         <h1
-          className="px-2 lg:px-2 text-xl sm:text-2xl font-bold border-l-4 pl-3 text-white"
+          className="text-lg sm:text-xl md:text-2xl font-bold border-l-4 pl-3 text-white"
           style={{ borderImage: "linear-gradient(to bottom, #FFD700, #FFA500) 1" }}
         >
           {title}
         </h1>
       </div>
 
+      {/* Movies Grid */}
       <div className="relative">
         {loading ? (
-          <p className="px-4">Loading...</p>
+          <p className="px-4 text-gray-400">Loading...</p>
         ) : (
           <>
-            <div className="px-2 lg:px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
               {paginatedMovies.map(movie => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
             </div>
 
+            {/* Prev Button */}
             {currentPage > 0 && (
               <button
                 onClick={handlePrev}
-                className="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-800/80 hover:bg-gray-700 p-2 rounded-full shadow-lg"
+                className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 
+                           bg-gray-800/70 hover:bg-gray-700 p-1.5 sm:p-2 
+                           rounded-full shadow-md"
               >
-                <ChevronLeft className="w-6 h-6 text-white" />
+                <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </button>
             )}
+
+            {/* Next Button */}
             {currentPage < totalPages - 1 && (
               <button
                 onClick={handleNext}
-                className="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-800/80 hover:bg-gray-700 p-2 rounded-full shadow-lg"
+                className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 
+                           bg-gray-800/70 hover:bg-gray-700 p-1.5 sm:p-2 
+                           rounded-full shadow-md"
               >
-                <ChevronRight className="w-6 h-6 text-white" />
+                <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </button>
             )}
           </>
@@ -134,6 +143,7 @@ const Section: React.FC<SectionProps> = ({ title, endpoint }) => {
     </section>
   );
 };
+
 
 // Home component
 const Home: React.FC = () => {
