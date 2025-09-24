@@ -123,13 +123,13 @@ const Account = () => {
       )}
 
       {/* Modal */}
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          {/* Card */}
+            {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
-            {/* Close button */}
+            {/* Close */}
             <button
               onClick={() => setOpen(false)}
+              aria-label="Close modal"
               className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-200"
             >
               <X className="w-5 h-5 text-gray-700" />
@@ -140,7 +140,9 @@ const Account = () => {
               <button
                 onClick={() => setIsLogin(true)}
                 className={`text-sm font-semibold ${
-                  isLogin ? "text-indigo-600 border-b-2 border-indigo-600" : "text-gray-500"
+                  isLogin
+                    ? "text-indigo-600 border-b-2 border-indigo-600"
+                    : "text-gray-500"
                 }`}
               >
                 Login
@@ -148,7 +150,9 @@ const Account = () => {
               <button
                 onClick={() => setIsLogin(false)}
                 className={`text-sm font-semibold ${
-                  !isLogin ? "text-indigo-600 border-b-2 border-indigo-600" : "text-gray-500"
+                  !isLogin
+                    ? "text-indigo-600 border-b-2 border-indigo-600"
+                    : "text-gray-500"
                 }`}
               >
                 Signup
@@ -159,69 +163,54 @@ const Account = () => {
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
             {/* Form */}
-            {isLogin ? (
-              <form onSubmit={handleLogin} className="space-y-4">
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
-                />
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50"
-                >
-                  {loading ? "Logging in..." : "Login"}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleSignup} className="space-y-4">
+            <form
+              onSubmit={isLogin ? handleLogin : handleSignup}
+              className="space-y-4"
+            >
+              {!isLogin && (
                 <input
                   type="text"
                   placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  required
                   className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
                 />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
-                />
+              )}
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
+              />
+              {!isLogin && (
                 <input
                   type="password"
                   placeholder="Confirm Password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
                   className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
                 />
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50"
-                >
-                  {loading ? "Signing up..." : "Sign Up"}
-                </button>
-              </form>
-            )}
+              )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {loading ? (isLogin ? "Logging in..." : "Signing up...") : isLogin ? "Login" : "Sign Up"}
+              </button>
+            </form>
           </div>
         </div>
       )}
