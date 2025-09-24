@@ -30,6 +30,34 @@ Includes **unit testing with Vitest + React Testing Library** and automated pipe
 
 ---
 
+## 📂 Project Structure
+
+BINGE-CINEMA-APP/
+│── .github/workflows/ # GitHub Actions CI/CD configs
+│── public/ # Public assets (favicon, index.html, etc.)
+│── src/ # Source code
+│ ├── assets/components/ # Reusable UI components
+│ │ ├── Home/ # Home page components
+│ │ ├── Landing/ # Landing page components
+│ │ ├── Nav/ # Navbar, Account, Browse, Search
+│ │ ├── Pages/ # Other page-level components
+│ │ └── **tests**/ # Unit & integration tests
+│ ├── context/ # React context providers
+│ ├── App.tsx # Main App component
+│ ├── main.tsx # Entry point
+│ ├── firebase.tsx # Firebase config (Auth)
+│ ├── index.css # Global styles
+│ └── Profile.tsx # User Profile page
+│
+│── lib/ # API utilities (TMDB fetchers etc.)
+│── .env.local # Environment variables
+│── dockerfile # Docker setup
+│── nginx.conf # Nginx reverse proxy config
+│── vite.config.ts # Vite config
+│── tsconfig.json # TypeScript config
+│── package.json # Dependencies & scripts
+│── README.md # Project documentation
+
 ## ⚡ Getting Started
 
 ### 1. Clone the repository
