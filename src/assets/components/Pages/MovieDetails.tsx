@@ -97,115 +97,121 @@ const MovieDetails: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-white font-sans">
-      <div className="px-18">
-        <Navbar />
+<div className="flex flex-col min-h-screen bg-gray-900 text-white font-sans">
+  {/* Navbar */}
+  <div className="px-4 sm:px-6 md:px-12">
+    <Navbar />
+  </div>
+
+  {/* Hero Section */}
+  <div className="w-full">
+    <div
+      className="relative w-full bg-cover bg-center"
+      style={{
+        backgroundImage: `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`,
+      }}
+    >
+      <div className="bg-gray-950 bg-opacity-70 flex flex-col md:flex-row gap-6 p-6 sm:p-8 md:p-12 container mx-auto">
+        {/* Poster */}
+        <img
+          src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+          alt={movie.title}
+          className="w-40 sm:w-48 md:w-64 rounded-lg shadow-lg mx-auto md:mx-0"
+        />
+
+        {/* Info */}
+        <div className="space-y-4 max-w-3xl text-center md:text-left">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
+            {movie.title}
+          </h1>
+
+          {/* Quick actions */}
+          <div className="flex flex-wrap justify-center md:justify-start gap-3 text-sm sm:text-base">
+            <button
+              onClick={() => playTrailer(movie.id)}
+              className="flex items-center gap-1 px-3 py-1 bg-red-600 rounded-md hover:bg-red-700"
+            >
+              <Play size={16} /> Trailer
+            </button>
+            <span className="flex items-center gap-1">
+              <Star className="text-yellow-400" size={16} />{" "}
+              {movie.vote_average.toFixed(1)}
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock size={16} /> {movie.runtime} min
+            </span>
+          </div>
+
+          {/* Overview */}
+          <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+            {movie.overview}
+          </p>
+
+          {/* Metadata */}
+          <div className="text-xs sm:text-sm text-gray-400 space-y-1">
+            <p>
+              <span className="font-semibold">Released:</span>{" "}
+              {movie.release_date}
+            </p>
+            <p>
+              <span className="font-semibold">Genres:</span>{" "}
+              {movie.genres.map((g: GenreItem) => g.name).join(", ")}
+            </p>
+          </div>
+        </div>
       </div>
+    </div>
+  </div>
 
-      {/* Hero section */}
-      <div className="px-24">
+  {/* Related movies */}
+  <div className="px-4 sm:px-6 md:px-12 py-12">
+    <h2 className="text-lg sm:text-xl font-semibold mb-6 text-center md:text-left">
+      You may also like
+    </h2>
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      {similar.map((rel: SimilarMovieType) => (
         <div
-          className="relative w-full bg-cover bg-center"
-          style={{
-            backgroundImage: `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`,
-          }}
+          key={rel.id}
+          className="bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition"
         >
-          <div className="bg-gray-950 bg-opacity-70 flex flex-col md:flex-row gap-6 p-6 md:p-12 max-w-6xl mx-auto">
-            {/* Poster */}
-            <img
-              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-              alt={movie.title}
-              className="w-48 md:w-64 rounded-lg shadow-lg"
-            />
-
-            {/* Info */}
-            <div className="space-y-4 max-w-3xl">
-              <h1 className="text-3xl md:text-4xl font-bold">{movie.title}</h1>
-
-              {/* Quick actions */}
-              <div className="flex gap-4 text-sm sm:text-base">
-                <button
-                  onClick={() => playTrailer(movie.id)}
-                  className="flex items-center gap-1 px-3 py-1 bg-red-600 rounded-md hover:bg-red-700"
-                >
-                  <Play size={16} /> Trailer
-                </button>
-                <span className="flex items-center gap-1">
-                  <Star className="text-yellow-400" size={16} />{" "}
-                  {movie.vote_average.toFixed(1)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock size={16} /> {movie.runtime} min
-                </span>
-              </div>
-
-              {/* Overview */}
-              <p className="text-gray-300">{movie.overview}</p>
-
-              {/* Metadata */}
-              <div className="text-sm text-gray-400 space-y-1">
-                <p>
-                  <span className="font-semibold">Released:</span>{" "}
-                  {movie.release_date}
-                </p>
-                <p>
-                  <span className="font-semibold">Genres:</span>{" "}
-                  {movie.genres.map((g: GenreItem) => g.name).join(", ")}
-                </p>
-              </div>
+          <img
+            src={`https://image.tmdb.org/t/p/w300${rel.poster_path}`}
+            alt={rel.title}
+            className="w-full aspect-[2/3] object-cover"
+          />
+          <div className="p-2 text-xs sm:text-sm">
+            <p className="font-semibold truncate">{rel.title}</p>
+            <p className="text-gray-400">{rel.release_date?.slice(0, 4)}</p>
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => navigate(`/movie/${rel.id}`)}
+                className="text-xs px-2 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1"
+              >
+                <Play size={12} /> Play
+              </button>
+              <button
+                onClick={() => navigate(`/movie/${rel.id}`)}
+                className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-800 rounded-md flex items-center gap-1"
+              >
+                <Info size={12} /> More Info
+              </button>
             </div>
           </div>
         </div>
-
-        {/* Related movies */}
-        <div className="px-2 py-16">
-          <h2 className="text-xl font-semibold mb-4">You may also like</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-            {similar.map((rel: SimilarMovieType) => (
-              <div
-                key={rel.id}
-                className="bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition"
-              >
-                <img
-                  src={`https://image.tmdb.org/t/p/w300${rel.poster_path}`}
-                  alt={rel.title}
-                  className="w-full h-40 object-cover"
-                />
-                <div className="p-2 text-sm">
-                  <p className="font-semibold">{rel.title}</p>
-                  <p className="text-gray-400">
-                    {rel.release_date?.slice(0, 4)}
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => navigate(`/movie/${rel.id}`)}
-                      className="text-xs px-2 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1"
-                    >
-                      <Play size={12} /> Play
-                    </button>
-                    <button
-                      onClick={() => navigate(`/movie/${rel.id}`)}
-                      className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-800 rounded-md flex items-center gap-1"
-                    >
-                      <Info size={12} /> More Info
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <Footer />
-
-      {/* Trailer modal */}
-      <PlayModal
-        trailerOpen={trailerOpen}
-        trailerUrl={trailerUrl}
-        onClose={() => setTrailerOpen(false)}
-      />
+      ))}
     </div>
+  </div>
+
+  <Footer />
+
+  {/* Trailer modal */}
+  <PlayModal
+    trailerOpen={trailerOpen}
+    trailerUrl={trailerUrl}
+    onClose={() => setTrailerOpen(false)}
+  />
+</div>
+
   );
 };
 
