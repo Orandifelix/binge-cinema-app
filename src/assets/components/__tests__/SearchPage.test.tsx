@@ -1,19 +1,31 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, it, vi, expect } from "vitest";
+import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 import SearchPage from "../Pages/SearchPage";
- 
 
-global.fetch = vi.fn();
+// Vitest mock
+let mockedFetch: ReturnType<typeof vi.fn>;
+
+beforeEach(() => {
+  mockedFetch = vi.fn();
+  // Telling TypeScript this is the global fetch
+  global.fetch = mockedFetch as unknown as typeof fetch;
+});
+
+afterEach(() => {
+  vi.resetAllMocks();
+});
 
 describe("SearchPage", () => {
   it("shows loading and then renders movies", async () => {
-    (fetch as any).mockResolvedValueOnce({
+    mockedFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        results: [{ id: 1, title: "Inception", poster_path: "/poster.jpg", release_date: "2010-07-16" }],
+        results: [
+          { id: 1, title: "Inception", poster_path: "/poster.jpg", release_date: "2010-07-16" },
+        ],
       }),
-    });
+    } as unknown as Response);
 
     render(
       <MemoryRouter initialEntries={["/search?q=Inception"]}>
@@ -29,7 +41,10 @@ describe("SearchPage", () => {
   });
 
   it("shows no results if empty array returned", async () => {
-    (fetch as any).mockResolvedValueOnce({ ok: true, json: async () => ({ results: [] }) });
+    mockedFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ results: [] }),
+    } as unknown as Response);
 
     render(
       <MemoryRouter initialEntries={["/search?q=Nothing"]}>

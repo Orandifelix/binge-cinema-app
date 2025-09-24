@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-
 import Content from "./Landing/Content";
 import Next_previous from "./Landing/Next_previous";
 import PlayModal from "./Landing/Play_modal";
 
+// Movie type for internal state
 interface Movie {
   id: number;
   title: string;
@@ -48,7 +48,7 @@ const Landing: React.FC = () => {
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [trailerUrl, setTrailerUrl] = useState<string>("");
 
-  // Fetch trending movies with details + trailer
+  // Fetch trending movies + details + trailer
   useEffect(() => {
     const fetchTrendingMovies = async () => {
       try {
@@ -62,7 +62,7 @@ const Landing: React.FC = () => {
         if (!res.ok) throw new Error(`TMDB API error: ${res.status}`);
         const data: { results: TMDBTrendingMovie[] } = await res.json();
 
-        const detailedMovies: Movie[] = await Promise.all(
+        const detailedMovies: (Movie | null)[] = await Promise.all(
           data.results.map(async (movie) => {
             try {
               const detailsRes = await fetch(
@@ -101,6 +101,7 @@ const Landing: React.FC = () => {
           })
         );
 
+        // Filter out nulls
         setMovies(detailedMovies.filter((m): m is Movie => m !== null));
       } catch (err) {
         console.error("Error fetching trending movies:", err);
@@ -140,8 +141,10 @@ const Landing: React.FC = () => {
 
   const movie = movies[currentIndex];
 
-  const prevMovie = () => setCurrentIndex((prev) => (prev === 0 ? movies.length - 1 : prev - 1));
-  const nextMovie = () => setCurrentIndex((prev) => (prev === movies.length - 1 ? 0 : prev + 1));
+  const prevMovie = () =>
+    setCurrentIndex((prev) => (prev === 0 ? movies.length - 1 : prev - 1));
+  const nextMovie = () =>
+    setCurrentIndex((prev) => (prev === movies.length - 1 ? 0 : prev + 1));
 
   return (
     <section
@@ -175,4 +178,3 @@ const Landing: React.FC = () => {
 };
 
 export default Landing;
-
