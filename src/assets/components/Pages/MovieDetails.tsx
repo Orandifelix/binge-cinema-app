@@ -126,21 +126,30 @@ const MovieDetails: React.FC = () => {
           </h1>
 
           {/* Quick actions */}
-          <div className="flex flex-wrap justify-center md:justify-start gap-3 text-sm sm:text-base">
-            <button
-              onClick={() => playTrailer(movie.id)}
-              className="flex items-center gap-1 px-3 py-1 bg-red-600 rounded-md hover:bg-red-700"
-            >
-              <Play size={16} /> Trailer
-            </button>
-            <span className="flex items-center gap-1">
-              <Star className="text-yellow-400" size={16} />{" "}
-              {movie.vote_average.toFixed(1)}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock size={16} /> {movie.runtime} min
-            </span>
-          </div>
+            <div className="flex flex-wrap justify-center md:justify-start gap-3 text-sm sm:text-base">
+              <button
+                onClick={() => playTrailer(movie.id)}
+                className="flex items-center gap-1 px-3 py-1 bg-red-600 rounded-md hover:bg-red-700"
+              >
+                <Play size={16} /> Trailer
+              </button>
+
+              {/* New Watch Now button */}
+              <button
+                onClick={() => navigate(`/live/${movie.id}`)}
+                className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 rounded-md font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+              >
+                🎬 Watch Now
+              </button>
+
+              <span className="flex items-center gap-1">
+                <Star className="text-yellow-400" size={16} /> {movie.vote_average.toFixed(1)}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock size={16} /> {movie.runtime} min
+              </span>
+            </div>
+
 
           {/* Overview */}
           <p className="text-gray-300 text-sm sm:text-base leading-relaxed">

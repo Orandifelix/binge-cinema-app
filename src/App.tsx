@@ -6,6 +6,7 @@ import Genres from "./assets/components/Pages/Genres";
 import Mainpage from "./assets/components/Pages/Mainpage";
 import MovieDetails from "./assets/components/Pages/MovieDetails";
 import SearchPage from "./assets/components/Pages/SearchPage";
+import Live from "./assets/components/Pages/Live";
 
 const App = () => {
   return (
@@ -21,6 +22,8 @@ const App = () => {
 
       {/* Movie details */}
       <Route path="/movie/:id" element={<MovieDetails />} />
+      {/* Live Movie */}
+      <Route path="/live/:id" element={<Live />} />
       {/* {Search page} */}
       <Route path="/search" element={<SearchPage />} />
     </Routes>
