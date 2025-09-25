@@ -114,7 +114,7 @@ const Live = () => {
                   </p>
                   <div className="flex gap-2 mt-2">
                     <button
-                      onClick={() => navigate(`/live/${rel.id}`)}
+                      onClick={() => navigate(`/movie/${rel.id}`)}
                       className="text-xs px-2 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1"
                     >
                       <Play size={12} /> Play
