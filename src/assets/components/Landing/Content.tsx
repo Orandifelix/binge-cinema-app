@@ -1,5 +1,6 @@
 import { Play } from "lucide-react";
 import MovieInfo from "./MovieInfo";
+import { Link } from "react-router-dom";
 
 interface ContentProps {
   movie: {
@@ -42,17 +43,17 @@ const Content = ({ movie, playTrailer }: ContentProps) => {
         <MovieInfo movieId={movie.id} playTrailer={playTrailer} />
       </div>
 
-      {/* Middle column (big play button) */}
+      {/* Middle column (big play button → Live page) */}
       <div className="hidden md:flex items-center justify-center col-span-1">
-        <button
-          onClick={() => playTrailer(movie.id)}
+        <Link
+          to={`/live/${movie.id}`}
           className="bg-white/70 hover:bg-white p-6 rounded-full shadow-lg transition"
         >
           <Play className="w-10 h-10 text-black" />
-        </button>
+        </Link>
       </div>
 
-      {/* Right column (just for spacing/balance) */}
+      {/* Right column (for balance) */}
       <div className="hidden md:block"></div>
     </div>
   );

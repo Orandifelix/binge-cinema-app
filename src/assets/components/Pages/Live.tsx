@@ -31,7 +31,7 @@ const Live = () => {
     );
   }
 
-  const embedUrl = `https://vidsrc.xyz/embed/movie?tmdb=${id}&autoplay=1`;
+  const embedUrl = `${import.meta.env.VITE_LIVE_BASE_URL}${id}&autoplay=1`;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100 font-sans">

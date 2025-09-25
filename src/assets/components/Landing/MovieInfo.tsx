@@ -15,8 +15,8 @@ const MovieInfo = ({ movieId, playTrailer }: MovieInfoProps) => {
 
       {/* More Info button */}
       <Link
-        to={`/movie/${movieId}`}  // ✅ dynamic path
-        onClick={() => console.log(`Show details for movie ${movieId}`)} // ✅ correctly placed
+        to={`/movie/${movieId}`}  //  dynamic path
+        onClick={() => console.log(`Show details for movie ${movieId}`)} // correctly placed
         className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 
                    px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm transition-all duration-200"
       >
