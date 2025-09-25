@@ -82,7 +82,6 @@ const Live = () => {
             />
           </div>
         </div>
-
         {/* Continue Watching */}
         <div className="px-4 sm:px-6 lg:px-12 xl:px-20 py-8 bg-gray-950">
           <h2 className="text-lg sm:text-xl font-semibold mb-4">

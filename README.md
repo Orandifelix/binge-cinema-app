@@ -83,7 +83,21 @@ cd binge-cinema-app
 Create .env files in the root project;
 
 ```sh
-VITE_TMDB_API_KEY=your_tmdb_api_key_here
+
+VITE_TMDB_API_KEY=your_tmdb_api_key
+VITE_TMDB_READ_ACCESS_TOKEN=your_tmdb_read_access_token
+VITE_TMDB_BASE_URL=https://api.themoviedb.org/3
+
+
+# Firebase Config
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+
 
 
 ```
@@ -154,6 +168,11 @@ Commit your changes: git commit -m "Add awesome feature"
 Push branch: git push origin feature/awesome-feature
 
 Open a Pull Request 🎉
+
+## ⚠️ Disclaimer
+
+This project is intended solely for educational and demonstration purposes.
+All API calls, integrations, and examples are provided only to illustrate technical concepts and should not be used for production or commercial purposes.
 
 ## 📜 License
 
