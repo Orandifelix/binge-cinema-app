@@ -2,11 +2,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Footer from "../Footer";
 import Navbar from "../Navbar";
-import { fetchSimilarMovies, fetchMovieDetails } from "../../../lib/tmdb";  
+import { fetchSimilarMovies, fetchMovieDetails } from "../../../lib/tmdb";
 import { Play, Info } from "lucide-react";
-import { onAuthStateChanged } from "firebase/auth";
-import type { User } from "firebase/auth";
+import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "../../../firebase";
+
+// Firestore service
+import { saveLastWatched } from "../../../services/watchedService";
+import ContinueWatching from "../ContinueWatching";
+
 interface SimilarMovieType {
   id: number;
   title: string;
@@ -17,12 +21,13 @@ interface SimilarMovieType {
 const Live = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
   const [similar, setSimilar] = useState<SimilarMovieType[]>([]);
   const [title, setTitle] = useState<string>("");
-  const [user, setUser] = useState<User | null>(null);  
+  const [posterPath, setPosterPath] = useState<string>("");
+  const [user, setUser] = useState<User | null>(null);
 
-
-  // ✅ Tracking login state
+  // ✅ Track auth state
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -30,13 +35,13 @@ const Live = () => {
     return () => unsub();
   }, []);
 
-  // ✅ Fetching similar movies
+  // ✅ Fetch similar movies
   useEffect(() => {
     if (!id) return;
     fetchSimilarMovies(Number(id))
       .then((movies) => {
         const cleaned = movies
-          .filter((m) => m.poster_path) 
+          .filter((m) => m.poster_path)
           .map((m) => ({
             id: m.id,
             title: m.title,
@@ -48,21 +53,29 @@ const Live = () => {
       .catch((err) => console.error(err));
   }, [id]);
 
-  // ✅ Fetching main movie details
+  // ✅ Fetch movie details
   useEffect(() => {
     if (!id) return;
     fetchMovieDetails(Number(id))
-      .then((movie) => setTitle(movie.title))
+      .then((movie) => {
+        setTitle(movie.title);
+        setPosterPath(movie.poster_path || "");
+      })
       .catch((err) => console.error(err));
   }, [id]);
 
-  if (!id) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-red-500">
-        Invalid movie ID
-      </div>
-    );
-  }
+  // ✅ Save last watched movie
+  useEffect(() => {
+    if (!id || !user) return;
+    if (!title || !posterPath) return; // ensure we have details
+  
+    saveLastWatched({
+      movieId: id,
+      title,
+      poster_path: posterPath,
+    }).catch((err) => console.error("Failed to save watch progress:", err));
+  }, [id, user, title, posterPath]);
+  
 
   const embedUrl = `${import.meta.env.VITE_LIVE_BASE_URL}${id}&autoplay=1`;
 
@@ -75,7 +88,7 @@ const Live = () => {
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto">
-        {/* 🎬 Player Section with Title */}
+        {/* 🎬 Title */}
         <div className="bg-gray-950 py-6 text-center">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-100">
             🎬 You are watching <span className="text-red-500">{title}</span>
@@ -84,7 +97,7 @@ const Live = () => {
 
         {/* Video Player */}
         <div className="flex justify-center bg-black">
-          <div className="relative w-[80%] aspect-video rounded-lg overflow-hidden shadow-lg">
+          <div className="relative w-[90%] md:w-[80%] aspect-video rounded-lg overflow-hidden shadow-lg">
             <iframe
               src={embedUrl}
               allow="autoplay; encrypted-media"
@@ -94,17 +107,10 @@ const Live = () => {
           </div>
         </div>
 
-        {/* ✅ Show only if user is logged in */}
-        {user && (
-          <div className="px-4 sm:px-6 lg:px-12 xl:px-20 py-8 bg-gray-950">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4">
-              Continue Watching
-            </h2>
-            <p className="text-gray-400">Your progress will show here.</p>
-          </div>
-        )}
+        {/* ✅ Continue Watching Section */}
+        {user && <ContinueWatching />}
 
-        {/* Related movies */}
+        {/* Similar Movies */}
         <div className="px-4 sm:px-6 lg:px-12 xl:px-20 py-8 bg-gray-950">
           <h2 className="text-lg sm:text-xl font-semibold mb-6">
             You May Also Like
@@ -152,4 +158,3 @@ const Live = () => {
 };
 
 export default Live;
-
