@@ -27,7 +27,7 @@ const Live = () => {
   const [posterPath, setPosterPath] = useState<string>("");
   const [user, setUser] = useState<User | null>(null);
 
-  // ✅ Track auth state
+  // ✅ Tracking auth state
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -35,7 +35,7 @@ const Live = () => {
     return () => unsub();
   }, []);
 
-  // ✅ Fetch similar movies
+  // ✅ Fetching similar movies
   useEffect(() => {
     if (!id) return;
     fetchSimilarMovies(Number(id))
@@ -53,7 +53,7 @@ const Live = () => {
       .catch((err) => console.error(err));
   }, [id]);
 
-  // ✅ Fetch movie details
+  // ✅ Fetching movie details
   useEffect(() => {
     if (!id) return;
     fetchMovieDetails(Number(id))
@@ -64,10 +64,10 @@ const Live = () => {
       .catch((err) => console.error(err));
   }, [id]);
 
-  // ✅ Save last watched movie
+  // ✅ Saving last watched movie
   useEffect(() => {
     if (!id || !user) return;
-    if (!title || !posterPath) return; // ensure we have details
+    if (!title || !posterPath) return; 
   
     saveLastWatched({
       movieId: id,
