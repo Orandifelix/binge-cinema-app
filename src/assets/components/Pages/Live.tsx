@@ -22,7 +22,7 @@ const Live = () => {
   const [user, setUser] = useState<User | null>(null);  
 
 
-  // ✅ Track login state
+  // ✅ Tracking login state
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -30,7 +30,7 @@ const Live = () => {
     return () => unsub();
   }, []);
 
-  // ✅ Fetch similar movies
+  // ✅ Fetching similar movies
   useEffect(() => {
     if (!id) return;
     fetchSimilarMovies(Number(id))
@@ -48,7 +48,7 @@ const Live = () => {
       .catch((err) => console.error(err));
   }, [id]);
 
-  // ✅ Fetch main movie details
+  // ✅ Fetching main movie details
   useEffect(() => {
     if (!id) return;
     fetchMovieDetails(Number(id))
