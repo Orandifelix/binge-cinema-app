@@ -2,9 +2,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Footer from "../Footer";
 import Navbar from "../Navbar";
-import { fetchSimilarMovies, fetchMovieDetails } from "../../../lib/tmdb";
+import { fetchSimilarMovies, fetchMovieDetails } from "../../../lib/tmdb";  
 import { Play, Info } from "lucide-react";
-
+import { onAuthStateChanged } from "firebase/auth";
+import type { User } from "firebase/auth";
+import { auth } from "../../../firebase";
 interface SimilarMovieType {
   id: number;
   title: string;
@@ -15,17 +17,26 @@ interface SimilarMovieType {
 const Live = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
   const [similar, setSimilar] = useState<SimilarMovieType[]>([]);
   const [title, setTitle] = useState<string>("");
+  const [user, setUser] = useState<User | null>(null);  
 
-  // Fetch similar movies
+
+  // ✅ Track login state
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsub();
+  }, []);
+
+  // ✅ Fetch similar movies
   useEffect(() => {
     if (!id) return;
     fetchSimilarMovies(Number(id))
       .then((movies) => {
         const cleaned = movies
-          .filter((m) => m.poster_path)
+          .filter((m) => m.poster_path) 
           .map((m) => ({
             id: m.id,
             title: m.title,
@@ -37,7 +48,7 @@ const Live = () => {
       .catch((err) => console.error(err));
   }, [id]);
 
-  // Fetch main movie details
+  // ✅ Fetch main movie details
   useEffect(() => {
     if (!id) return;
     fetchMovieDetails(Number(id))
@@ -53,7 +64,7 @@ const Live = () => {
     );
   }
 
-  const embedUrl = `${import.meta.env.VITE_LIVE_BASE_URL}${id}&autoplay=1&mute=1`;
+  const embedUrl = `${import.meta.env.VITE_LIVE_BASE_URL}${id}&autoplay=1`;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100 font-sans">
@@ -64,7 +75,7 @@ const Live = () => {
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto">
-        {/* 🎬 Player Section */}
+        {/* 🎬 Player Section with Title */}
         <div className="bg-gray-950 py-6 text-center">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-100">
             🎬 You are watching <span className="text-red-500">{title}</span>
@@ -82,13 +93,16 @@ const Live = () => {
             />
           </div>
         </div>
-        {/* Continue Watching */}
-        <div className="px-4 sm:px-6 lg:px-12 xl:px-20 py-8 bg-gray-950">
-          <h2 className="text-lg sm:text-xl font-semibold mb-4">
-            Continue Watching
-          </h2>
-          <p className="text-gray-400">Your progress will show here.</p>
-        </div>
+
+        {/* ✅ Show only if user is logged in */}
+        {user && (
+          <div className="px-4 sm:px-6 lg:px-12 xl:px-20 py-8 bg-gray-950">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4">
+              Continue Watching
+            </h2>
+            <p className="text-gray-400">Your progress will show here.</p>
+          </div>
+        )}
 
         {/* Related movies */}
         <div className="px-4 sm:px-6 lg:px-12 xl:px-20 py-8 bg-gray-950">
@@ -138,3 +152,4 @@ const Live = () => {
 };
 
 export default Live;
+
