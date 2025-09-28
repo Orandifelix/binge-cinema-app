@@ -42,7 +42,7 @@ const ContinueWatching: React.FC = () => {
         Continue Watching
       </h2>
 
-      {/* Single card in grid layout */}
+      {/* {/* cards for the layout* - continue watching  movies/*} */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <div className="bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition">
           <img

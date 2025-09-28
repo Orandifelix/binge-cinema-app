@@ -106,7 +106,6 @@ const Live = () => {
             />
           </div>
         </div>
-
         {/* ✅ Continue Watching Section */}
         {user && <ContinueWatching />}
 
