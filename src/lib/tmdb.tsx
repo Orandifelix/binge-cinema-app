@@ -1,3 +1,4 @@
+// --- BASE & HEADERS ---
 const BASE = "https://api.themoviedb.org/3";
 
 const getHeaders = () => ({
@@ -10,15 +11,18 @@ export type Genre = { id: number; name: string };
 
 export interface TMDBMovie {
   id: number;
-  title: string;
+  title?: string;
+  name?: string;                // TV uses "name"
   overview?: string;
-  release_date?: string;
+  release_date?: string;        // Movies
+  first_air_date?: string;      // TV
   poster_path?: string;
   backdrop_path?: string;
   vote_average?: number;
-  runtime?: number;
+  runtime?: number;             // Only for movies
   genres?: Genre[];
-  [key: string]: unknown; // fallback for other fields
+  media_type?: "movie" | "tv";  // Sometimes included in multi endpoints
+  [key: string]: unknown;
 }
 
 export interface TMDBVideo {
@@ -29,8 +33,18 @@ export interface TMDBVideo {
   type: string;
 }
 
-// --- FUNCTIONS ---
+// Simplified Movie type for your frontend
+export interface Movie {
+  id: number;
+  title: string;
+  year: string;
+  genre: string;
+  rating: string;
+  backdrop: string;
+  media_type: "movie" | "tv";
+}
 
+// --- GENRES ---
 export async function fetchGenres(): Promise<Genre[]> {
   const res = await fetch(`${BASE}/genre/movie/list`, { headers: getHeaders() });
   if (!res.ok) throw new Error(`fetchGenres: ${res.status}`);
@@ -38,17 +52,16 @@ export async function fetchGenres(): Promise<Genre[]> {
   return data.genres ?? [];
 }
 
-/**
- * Fetch movies for a given genre id. Will page through results until `limit` items are collected (default 40).
- */
+// --- MOVIES ---
 export async function fetchMoviesByGenre(genreId: number, limit = 40): Promise<TMDBMovie[]> {
   const results: TMDBMovie[] = [];
   let page = 1;
 
   while (results.length < limit && page <= 5) {
-    const res = await fetch(`${BASE}/discover/movie?with_genres=${genreId}&language=en-US&page=${page}`, {
-      headers: getHeaders(),
-    });
+    const res = await fetch(
+      `${BASE}/discover/movie?with_genres=${genreId}&language=en-US&page=${page}`,
+      { headers: getHeaders() }
+    );
     if (!res.ok) throw new Error(`fetchMoviesByGenre: ${res.status}`);
     const data: { results: TMDBMovie[] } = await res.json();
     results.push(...(data.results ?? []));
@@ -80,11 +93,29 @@ export async function fetchSimilarMovies(id: number, limit = 12): Promise<TMDBMo
   return (data.results ?? []).slice(0, limit);
 }
 
-/**
- * Fetch "type" lists like popular, top_rated, upcoming, or generic discover by media type.
- * type param examples: "movie", "tv", "top_rated", "popular", "upcoming", "latest"
- * Will collect ~limit items (default 60) by paging the appropriate endpoint.
- */
+// --- SERIES ---
+export async function fetchSeriesDetails(id: number) {
+  const res = await fetch(`${BASE}/tv/${id}?language=en-US`, { headers: getHeaders() });
+  if (!res.ok) throw new Error(`fetchSeriesDetails: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchSeasonDetails(seriesId: number, seasonNumber: number) {
+  const res = await fetch(`${BASE}/tv/${seriesId}/season/${seasonNumber}?language=en-US`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error(`fetchSeasonDetails: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchSimilarSeries(id: number, limit = 12) {
+  const res = await fetch(`${BASE}/tv/${id}/similar?language=en-US&page=1`, { headers: getHeaders() });
+  if (!res.ok) throw new Error(`fetchSimilarSeries: ${res.status}`);
+  const data: { results: TMDBMovie[] } = await res.json();
+  return (data.results ?? []).slice(0, limit);
+}
+
+// --- GENERIC TYPE FETCH ---
 export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBMovie[]> {
   const results: TMDBMovie[] = [];
   let page = 1;
@@ -92,20 +123,13 @@ export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBM
 
   const endpointForType = (t: string) => {
     switch (t) {
-      case "top_rated":
-        return "/movie/top_rated";
-      case "latest":
-        return "/movie/now_playing"; // latest returns single movie, fallback
-      case "popular":
-        return "/movie/popular";
-      case "upcoming":
-        return "/movie/upcoming";
-      case "tv":
-        return "/tv/popular";
-      case "movie":
-        return "/discover/movie?sort_by=popularity.desc";
-      default:
-        return "/discover/movie?sort_by=popularity.desc";
+      case "top_rated": return "/movie/top_rated";
+      case "latest":    return "/movie/now_playing"; // "latest" returns 1 item, so fallback
+      case "popular":   return "/movie/popular";
+      case "upcoming":  return "/movie/upcoming";
+      case "tv":        return "/tv/popular";
+      case "movie":     return "/discover/movie?sort_by=popularity.desc";
+      default:          return "/discover/movie?sort_by=popularity.desc";
     }
   };
 

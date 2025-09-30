@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import MovieCard from "./Home/MovieCard";
-import type { Movie } from "./Home/MovieCard";
+import type { Movie } from "../../hooks/useFetchMovies"; // ✅ use the exported type
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Sections configuration
@@ -13,7 +13,7 @@ const sections = [
   { title: "⏳ Coming Soon", label: "upcoming" },
 ];
 
-// TMDB API response type
+// API response type (raw from TMDB)
 interface TMDBMovie {
   id: number;
   title?: string;
@@ -22,9 +22,10 @@ interface TMDBMovie {
   first_air_date?: string;
   vote_average?: number;
   backdrop_path?: string;
+  media_type?: "movie" | "tv";
 }
 
-// Custom hook to fetch movies
+// Custom hook to fetch data for each section
 const useFetchMovies = (endpoint: string) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +55,7 @@ const useFetchMovies = (endpoint: string) => {
           backdrop: m.backdrop_path
             ? `https://image.tmdb.org/t/p/original${m.backdrop_path}`
             : "",
+          media_type: m.media_type || (m.title ? "movie" : "tv"), // ✅ ensures routing works
         }));
 
         setMovies(mapped);
@@ -70,7 +72,7 @@ const useFetchMovies = (endpoint: string) => {
   return { movies, loading };
 };
 
-// Component for a single section
+// Section component (reusable)
 interface SectionProps {
   title: string;
   endpoint: string;
@@ -87,8 +89,11 @@ const Section: React.FC<SectionProps> = ({ title, endpoint }) => {
     currentPage * pageSize + pageSize
   );
 
-  const handleNext = () => currentPage < totalPages - 1 && setCurrentPage(prev => prev + 1);
-  const handlePrev = () => currentPage > 0 && setCurrentPage(prev => prev - 1);
+  const handleNext = () =>
+    currentPage < totalPages - 1 && setCurrentPage((prev) => prev + 1);
+
+  const handlePrev = () =>
+    currentPage > 0 && setCurrentPage((prev) => prev - 1);
 
   return (
     <section className="space-y-4">
@@ -96,7 +101,9 @@ const Section: React.FC<SectionProps> = ({ title, endpoint }) => {
       <div className="px-2 sm:px-4">
         <h1
           className="text-lg sm:text-xl md:text-2xl font-bold border-l-4 pl-3 text-white"
-          style={{ borderImage: "linear-gradient(to bottom, #FFD700, #FFA500) 1" }}
+          style={{
+            borderImage: "linear-gradient(to bottom, #FFD700, #FFA500) 1",
+          }}
         >
           {title}
         </h1>
@@ -109,7 +116,7 @@ const Section: React.FC<SectionProps> = ({ title, endpoint }) => {
         ) : (
           <>
             <div className="px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-              {paginatedMovies.map(movie => (
+              {paginatedMovies.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
             </div>
@@ -144,8 +151,7 @@ const Section: React.FC<SectionProps> = ({ title, endpoint }) => {
   );
 };
 
-
-// Home component
+// Home component (root)
 const Home: React.FC = () => {
   const sectionEndpoints: Record<string, string> = {
     movie: "trending/movie/week",
