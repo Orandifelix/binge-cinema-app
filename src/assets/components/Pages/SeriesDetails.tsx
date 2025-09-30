@@ -55,15 +55,18 @@ const SeriesDetails: React.FC = () => {
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [loading, setLoading] = useState(true);
 
-  // trailer modal
+  // Trailer modal
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [trailerUrl, setTrailerUrl] = useState("");
 
-  // pagination
+  // Pagination
   const [page, setPage] = useState(0);
   const pageSize = 6;
   const totalPages = Math.ceil(episodes.length / pageSize);
-  const paginatedEpisodes = episodes.slice(page * pageSize, page * pageSize + pageSize);
+  const paginatedEpisodes = episodes.slice(
+    page * pageSize,
+    page * pageSize + pageSize
+  );
 
   // Fetch series details & similar
   useEffect(() => {
@@ -85,11 +88,13 @@ const SeriesDetails: React.FC = () => {
   // Fetch episodes when season changes
   useEffect(() => {
     if (!seriesId || !selectedSeason) return;
-    fetchSeasonEpisodes(seriesId, selectedSeason).then((eps) => setEpisodes(eps || []));
+    fetchSeasonEpisodes(seriesId, selectedSeason).then((eps) =>
+      setEpisodes(eps || [])
+    );
     setPage(0);
   }, [seriesId, selectedSeason]);
 
-  // Trailer
+  // Play trailer
   const playTrailer = async (id: number) => {
     try {
       const url = await fetchSeriesTrailer(id);
@@ -286,32 +291,36 @@ const SeriesDetails: React.FC = () => {
           {similar.map((rel) => (
             <div
               key={rel.id}
-              className="bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition"
+              className="relative group overflow-hidden rounded-lg shadow-lg transition-transform duration-300 hover:scale-105 cursor-pointer"
             >
               <img
                 src={`https://image.tmdb.org/t/p/w300${rel.poster_path}`}
                 alt={rel.name}
                 className="w-full aspect-[2/3] object-cover"
               />
-              <div className="p-2 text-xs sm:text-sm">
+
+              {/* Title overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-3 py-2 text-sm">
                 <p className="font-semibold truncate">{rel.name}</p>
-                <p className="text-gray-400">
+                <p className="text-gray-300 text-xs">
                   {rel.first_air_date?.slice(0, 4)}
                 </p>
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={() => navigate(`/tv/${rel.id}`)}
-                    className="text-xs px-2 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1"
-                  >
-                    <Play size={12} /> Play
-                  </button>
-                  <button
-                    onClick={() => navigate(`/tv/${rel.id}`)}
-                    className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-800 rounded-md flex items-center gap-1"
-                  >
-                    <Info size={12} /> More Info
-                  </button>
-                </div>
+              </div>
+
+              {/* Hover buttons */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity duration-300">
+                <button
+                  onClick={() => navigate(`/tv/${rel.id}`)}
+                  className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition"
+                >
+                  <Play size={14} /> Play
+                </button>
+                <button
+                  onClick={() => navigate(`/tv/${rel.id}`)}
+                  className="flex items-center gap-1 px-3 py-1 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-600 transition"
+                >
+                  <Info size={14} /> Info
+                </button>
               </div>
             </div>
           ))}

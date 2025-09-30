@@ -10,11 +10,19 @@ interface Props {
 const MovieCard: React.FC<Props> = ({ movie }) => {
   const navigate = useNavigate();
 
-  const handleClick = () => {
+  const goToDetails = () => {
     if (movie.media_type === "tv") {
       navigate(`/tv/${movie.id}`);
     } else {
       navigate(`/movie/${movie.id}`);
+    }
+  };
+
+  const goToLive = () => {
+    if (movie.media_type === "tv") {
+      navigate(`/live/tv/${movie.id}`);
+    } else {
+      navigate(`/live/movie/${movie.id}`);
     }
   };
 
@@ -45,13 +53,13 @@ const MovieCard: React.FC<Props> = ({ movie }) => {
       {/* Hover buttons */}
       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 transition-opacity duration-300">
         <button
-          onClick={handleClick}
+          onClick={goToLive}
           className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition"
         >
           <Play size={16} /> Play
         </button>
         <button
-          onClick={handleClick}
+          onClick={goToDetails}
           className="flex items-center gap-1 px-3 py-1 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-600 transition"
         >
           <Info size={16} /> Info
@@ -62,6 +70,3 @@ const MovieCard: React.FC<Props> = ({ movie }) => {
 };
 
 export default MovieCard;
-
-
-
