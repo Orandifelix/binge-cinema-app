@@ -25,8 +25,9 @@ const App = () => {
       <Route path="/tv/:id" element={<SeriesDetails />} />
 
       {/* Live Player */}
-      <Route path="/live/movie/:id" element={<Live />} />
-      <Route path="/live/tv/:id" element={<Live />} />
+      <Route path="/live/:id" element={<Live />} /> {/* Movies direct */}
+      <Route path="/live/movie/:id" element={<Live />} /> {/* Fallback for old links */}
+      <Route path="/live/tv/:id" element={<Live />} /> {/* TV shows */}
       <Route
         path="/live/tv/:id/season/:season/episode/:episode"
         element={<Live />}

@@ -4,11 +4,12 @@ import Footer from "../Footer";
 import Navbar from "../Navbar";
 import {
   fetchSimilarMovies,
+  fetchSimilarSeries,
   fetchMovieDetails,
   fetchSeriesDetails,
   fetchSeasonEpisodes,
 } from "../../../lib/tmdb";
-import { Play, Info } from "lucide-react";
+import { Play, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "../../../firebase";
 
@@ -54,9 +55,15 @@ const Live = () => {
   // TV-specific state
   const [series, setSeries] = useState<SeriesDetailsType | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
-  const [selectedSeason, setSelectedSeason] = useState<number>(season ? Number(season) : 1);
+  const [selectedSeason, setSelectedSeason] = useState<number>(
+    season ? Number(season) : 1
+  );
 
-  // ✅ Track auth state
+  // Episode pagination
+  const [episodePage, setEpisodePage] = useState(0);
+  const EPISODES_PER_PAGE = 6;
+
+  // ✅ Auth listener
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -64,51 +71,65 @@ const Live = () => {
     return () => unsub();
   }, []);
 
-  // Detect if we're watching a movie or TV show
-  const isMovie = location.pathname.startsWith("/live/movie");
+  // ✅ Detect movie or TV
   const isTv = location.pathname.startsWith("/live/tv");
+  const isMovie = !isTv;
 
   // ✅ Fetch details + similar
   useEffect(() => {
     if (!id) return;
 
-    fetchMovieDetails(Number(id))
-      .then((movie) => {
-        setTitle(movie.title || movie.name || "Untitled");
-        setPosterPath(movie.poster_path || "");
-      })
-      .catch((err) => console.error(err));
+    if (isMovie) {
+      fetchMovieDetails(Number(id))
+        .then((movie) => {
+          setTitle(movie.title || movie.name || "Untitled");
+          setPosterPath(movie.poster_path || "");
+        })
+        .catch((err) => console.error(err));
 
-    fetchSimilarMovies(Number(id))
-      .then((movies) => {
-        const cleaned = movies
-          .filter((m) => m.poster_path)
-          .map((m) => ({
-            id: m.id,
-            title: m.title || m.name,
-            poster_path: m.poster_path!,
-            release_date: m.release_date || m.first_air_date || "Unknown",
-          }));
-        setSimilar(cleaned);
-      })
-      .catch((err) => console.error(err));
-  }, [id]);
+      fetchSimilarMovies(Number(id))
+        .then((movies) => {
+          const cleaned = movies
+            .filter((m) => m.poster_path)
+            .map((m) => ({
+              id: m.id,
+              title: m.title || m.name,
+              poster_path: m.poster_path!,
+              release_date: m.release_date || m.first_air_date || "Unknown",
+            }));
+          setSimilar(cleaned);
+        })
+        .catch((err) => console.error(err));
+    }
 
-  // ✅ TV series details + episodes
-  useEffect(() => {
-    if (!isTv || !id) return;
+    if (isTv) {
+      fetchSeriesDetails(Number(id))
+        .then((details) => {
+          setSeries(details);
+          if (season) {
+            setSelectedSeason(Number(season));
+          } else if (details.seasons?.length) {
+            setSelectedSeason(details.seasons[0].season_number);
+          }
+          setTitle(details.name || "Untitled");
+        })
+        .catch((err) => console.error(err));
 
-    fetchSeriesDetails(Number(id))
-      .then((details) => {
-        setSeries(details);
-        if (season) {
-          setSelectedSeason(Number(season));
-        } else if (details.seasons?.length) {
-          setSelectedSeason(details.seasons[0].season_number);
-        }
-      })
-      .catch((err) => console.error(err));
-  }, [id, isTv, season]);
+      fetchSimilarSeries(Number(id))
+        .then((shows) => {
+          const cleaned = shows
+            .filter((s) => s.poster_path)
+            .map((s) => ({
+              id: s.id,
+              title: s.title || s.name,
+              poster_path: s.poster_path!,
+              release_date: s.release_date || s.first_air_date || "Unknown",
+            }));
+          setSimilar(cleaned);
+        })
+        .catch((err) => console.error(err));
+    }
+  }, [id, isMovie, isTv, season]);
 
   // ✅ Fetch episodes when season changes
   useEffect(() => {
@@ -116,6 +137,7 @@ const Live = () => {
     fetchSeasonEpisodes(Number(id), selectedSeason).then((eps) =>
       setEpisodes(eps || [])
     );
+    setEpisodePage(0); // reset page when season changes
   }, [id, isTv, selectedSeason]);
 
   // ✅ Save last watched
@@ -141,6 +163,12 @@ const Live = () => {
       embedUrl = `https://vidsrc.xyz/embed/tv/${id}?autoplay=1`;
     }
   }
+
+  // Paginate episodes
+  const paginatedEpisodes = episodes.slice(
+    episodePage * EPISODES_PER_PAGE,
+    (episodePage + 1) * EPISODES_PER_PAGE
+  );
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100 font-sans">
@@ -189,48 +217,71 @@ const Live = () => {
               </select>
             </div>
 
-            {/* Episodes grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {episodes.map((ep) => (
-                <div
-                  key={ep.id}
-                  className="relative bg-gray-900 rounded-lg overflow-hidden group cursor-pointer"
-                  onClick={() =>
-                    navigate(`/live/tv/${id}/season/${selectedSeason}/episode/${ep.episode_number}`)
-                  }
-                >
-                  {/* Thumbnail */}
-                  <img
-                    src={
-                      ep.still_path
-                        ? `https://image.tmdb.org/t/p/w300${ep.still_path}`
-                        : "https://via.placeholder.com/300x169?text=No+Image"
+            {/* Episodes grid with navigation */}
+            <div className="relative">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {paginatedEpisodes.map((ep) => (
+                  <div
+                    key={ep.id}
+                    className="relative bg-gray-900 rounded-lg overflow-hidden group cursor-pointer"
+                    onClick={() =>
+                      navigate(
+                        `/live/tv/${id}/season/${selectedSeason}/episode/${ep.episode_number}`
+                      )
                     }
-                    alt={ep.name}
-                    className="w-full aspect-video object-cover group-hover:opacity-80 transition"
-                  />
+                  >
+                    {/* Thumbnail */}
+                    <img
+                      src={
+                        ep.still_path
+                          ? `https://image.tmdb.org/t/p/w300${ep.still_path}`
+                          : "https://via.placeholder.com/300x169?text=No+Image"
+                      }
+                      alt={ep.name}
+                      className="w-full aspect-video object-cover group-hover:opacity-80 transition"
+                    />
 
-                  {/* Overlay Play Button */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-black/40 rounded-full flex items-center justify-center border border-white/40">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-6 h-6 sm:w-7 sm:h-7 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
+                    {/* Overlay Play Button */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-black/40 rounded-full flex items-center justify-center border border-white/40">
+                        <Play className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                      </div>
+                    </div>
+
+                    {/* Episode details */}
+                    <div className="p-2 text-xs sm:text-sm">
+                      <p className="font-semibold truncate">{ep.name}</p>
+                      <p className="text-gray-400">Ep {ep.episode_number}</p>
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  {/* Episode details */}
-                  <div className="p-2 text-xs sm:text-sm">
-                    <p className="font-semibold truncate">{ep.name}</p>
-                    <p className="text-gray-400">Ep {ep.episode_number}</p>
-                  </div>
-                </div>
-              ))}
+              {/* Left Arrow */}
+              {episodePage > 0 && (
+                <button
+                  onClick={() => setEpisodePage((prev) => Math.max(prev - 1, 0))}
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 bg-black/40 hover:bg-black p-2 sm:p-3 rounded-full"
+                >
+                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                </button>
+              )}
+
+              {/* Right Arrow */}
+              {(episodePage + 1) * EPISODES_PER_PAGE < episodes.length && (
+                <button
+                  onClick={() =>
+                    setEpisodePage((prev) =>
+                      (prev + 1) * EPISODES_PER_PAGE < episodes.length
+                        ? prev + 1
+                        : prev
+                    )
+                  }
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 bg-black/40 hover:bg-black p-2 sm:p-3 rounded-full"
+                >
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -256,12 +307,14 @@ const Live = () => {
                 />
                 <div className="p-2 text-xs sm:text-sm">
                   <p className="font-semibold truncate">{rel.title}</p>
-                  <p className="text-gray-400">{rel.release_date?.slice(0, 4)}</p>
+                  <p className="text-gray-400">
+                    {rel.release_date?.slice(0, 4)}
+                  </p>
                   <div className="flex gap-2 mt-2">
                     <button
                       onClick={() =>
                         isMovie
-                          ? navigate(`/live/movie/${rel.id}`)
+                          ? navigate(`/live/${rel.id}`)
                           : navigate(`/live/tv/${rel.id}`)
                       }
                       className="text-xs px-2 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1"

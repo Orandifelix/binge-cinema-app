@@ -115,7 +115,7 @@ export async function fetchSeasonDetails(seriesId: number, seasonNumber: number)
   return res.json();
 }
 
-// ✅ This returns only the episodes array
+// ✅ Only episodes array
 export async function fetchSeasonEpisodes(seriesId: number, seasonNumber: number): Promise<TMDBEpisode[]> {
   const season = await fetchSeasonDetails(seriesId, seasonNumber);
   return season.episodes ?? [];
