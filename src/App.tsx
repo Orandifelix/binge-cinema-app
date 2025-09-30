@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 
 import BrowseType from "./assets/components/Pages/BrowseType";
@@ -21,12 +20,19 @@ const App = () => {
       {/* Genres page */}
       <Route path="/genres" element={<Genres />} />
 
-      {/* Movie details */}
+      {/* Movie & TV details */}
       <Route path="/movie/:id" element={<MovieDetails />} />
       <Route path="/tv/:id" element={<SeriesDetails />} />
-      {/* Live Movie */}
-      <Route path="/live/:id" element={<Live />} />
-      {/* {Search page} */}
+
+      {/* Live Player */}
+      <Route path="/live/movie/:id" element={<Live />} />
+      <Route path="/live/tv/:id" element={<Live />} />
+      <Route
+        path="/live/tv/:id/season/:season/episode/:episode"
+        element={<Live />}
+      />
+
+      {/* Search page */}
       <Route path="/search" element={<SearchPage />} />
     </Routes>
   );

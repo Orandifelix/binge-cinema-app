@@ -33,6 +33,13 @@ export interface TMDBVideo {
   type: string;
 }
 
+export interface TMDBEpisode {
+  id: number;
+  name: string;
+  still_path: string | null;
+  episode_number: number;
+}
+
 // Simplified Movie type for your frontend
 export interface Movie {
   id: number;
@@ -108,11 +115,25 @@ export async function fetchSeasonDetails(seriesId: number, seasonNumber: number)
   return res.json();
 }
 
+// ✅ This returns only the episodes array
+export async function fetchSeasonEpisodes(seriesId: number, seasonNumber: number): Promise<TMDBEpisode[]> {
+  const season = await fetchSeasonDetails(seriesId, seasonNumber);
+  return season.episodes ?? [];
+}
+
 export async function fetchSimilarSeries(id: number, limit = 12) {
   const res = await fetch(`${BASE}/tv/${id}/similar?language=en-US&page=1`, { headers: getHeaders() });
   if (!res.ok) throw new Error(`fetchSimilarSeries: ${res.status}`);
   const data: { results: TMDBMovie[] } = await res.json();
   return (data.results ?? []).slice(0, limit);
+}
+
+export async function fetchSeriesTrailer(id: number): Promise<string | null> {
+  const res = await fetch(`${BASE}/tv/${id}/videos?language=en-US`, { headers: getHeaders() });
+  if (!res.ok) throw new Error(`fetchSeriesTrailer: ${res.status}`);
+  const data: { results: TMDBVideo[] } = await res.json();
+  const trailer = data.results.find((v) => v.type === "Trailer" && v.site === "YouTube");
+  return trailer ? `https://www.youtube.com/embed/${trailer.key}` : null;
 }
 
 // --- GENERIC TYPE FETCH ---
