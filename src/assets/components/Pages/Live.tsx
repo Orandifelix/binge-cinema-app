@@ -2,7 +2,12 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Footer from "../Footer";
 import Navbar from "../Navbar";
-import { fetchSimilarMovies, fetchMovieDetails } from "../../../lib/tmdb";
+import {
+  fetchSimilarMovies,
+  fetchMovieDetails,
+  fetchSeriesDetails,
+  fetchSeasonEpisodes,
+} from "../../../lib/tmdb";
 import { Play, Info } from "lucide-react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "../../../firebase";
@@ -11,11 +16,25 @@ import { auth } from "../../../firebase";
 import { saveLastWatched } from "../../../services/watchedService";
 import ContinueWatching from "../ContinueWatching";
 
+// Types
 interface SimilarMovieType {
   id: number;
   title: string;
   poster_path: string;
   release_date: string;
+}
+
+interface SeriesDetailsType {
+  id: number;
+  name: string;
+  seasons: { season_number: number; name: string }[];
+}
+
+interface Episode {
+  id: number;
+  name: string;
+  still_path: string | null;
+  episode_number: number;
 }
 
 const Live = () => {
@@ -32,6 +51,11 @@ const Live = () => {
   const [posterPath, setPosterPath] = useState<string>("");
   const [user, setUser] = useState<User | null>(null);
 
+  // TV-specific state
+  const [series, setSeries] = useState<SeriesDetailsType | null>(null);
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [selectedSeason, setSelectedSeason] = useState<number>(season ? Number(season) : 1);
+
   // ✅ Track auth state
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
@@ -44,7 +68,7 @@ const Live = () => {
   const isMovie = location.pathname.startsWith("/live/movie");
   const isTv = location.pathname.startsWith("/live/tv");
 
-  // ✅ Fetch details + similar (works for both movies/TV shows)
+  // ✅ Fetch details + similar
   useEffect(() => {
     if (!id) return;
 
@@ -69,6 +93,30 @@ const Live = () => {
       })
       .catch((err) => console.error(err));
   }, [id]);
+
+  // ✅ TV series details + episodes
+  useEffect(() => {
+    if (!isTv || !id) return;
+
+    fetchSeriesDetails(Number(id))
+      .then((details) => {
+        setSeries(details);
+        if (season) {
+          setSelectedSeason(Number(season));
+        } else if (details.seasons?.length) {
+          setSelectedSeason(details.seasons[0].season_number);
+        }
+      })
+      .catch((err) => console.error(err));
+  }, [id, isTv, season]);
+
+  // ✅ Fetch episodes when season changes
+  useEffect(() => {
+    if (!isTv || !id || !selectedSeason) return;
+    fetchSeasonEpisodes(Number(id), selectedSeason).then((eps) =>
+      setEpisodes(eps || [])
+    );
+  }, [id, isTv, selectedSeason]);
 
   // ✅ Save last watched
   useEffect(() => {
@@ -122,6 +170,71 @@ const Live = () => {
           </div>
         </div>
 
+        {/* ✅ Season & Episodes (TV only) */}
+        {isTv && series && (
+          <div className="px-4 sm:px-6 lg:px-12 xl:px-20 py-10">
+            {/* Season selector */}
+            <div className="mb-6 flex justify-between items-center">
+              <h2 className="text-lg sm:text-xl font-semibold">Episodes</h2>
+              <select
+                value={selectedSeason}
+                onChange={(e) => setSelectedSeason(Number(e.target.value))}
+                className="bg-gray-800 text-white rounded px-3 py-1 text-sm"
+              >
+                {series.seasons.map((season) => (
+                  <option key={season.season_number} value={season.season_number}>
+                    {season.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Episodes grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {episodes.map((ep) => (
+                <div
+                  key={ep.id}
+                  className="relative bg-gray-900 rounded-lg overflow-hidden group cursor-pointer"
+                  onClick={() =>
+                    navigate(`/live/tv/${id}/season/${selectedSeason}/episode/${ep.episode_number}`)
+                  }
+                >
+                  {/* Thumbnail */}
+                  <img
+                    src={
+                      ep.still_path
+                        ? `https://image.tmdb.org/t/p/w300${ep.still_path}`
+                        : "https://via.placeholder.com/300x169?text=No+Image"
+                    }
+                    alt={ep.name}
+                    className="w-full aspect-video object-cover group-hover:opacity-80 transition"
+                  />
+
+                  {/* Overlay Play Button */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-black/40 rounded-full flex items-center justify-center border border-white/40">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-6 h-6 sm:w-7 sm:h-7 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Episode details */}
+                  <div className="p-2 text-xs sm:text-sm">
+                    <p className="font-semibold truncate">{ep.name}</p>
+                    <p className="text-gray-400">Ep {ep.episode_number}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ✅ Continue Watching Section */}
         {user && <ContinueWatching />}
 
@@ -143,9 +256,7 @@ const Live = () => {
                 />
                 <div className="p-2 text-xs sm:text-sm">
                   <p className="font-semibold truncate">{rel.title}</p>
-                  <p className="text-gray-400">
-                    {rel.release_date?.slice(0, 4)}
-                  </p>
+                  <p className="text-gray-400">{rel.release_date?.slice(0, 4)}</p>
                   <div className="flex gap-2 mt-2">
                     <button
                       onClick={() =>
