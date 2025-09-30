@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Footer from "../Footer";
 import Navbar from "../Navbar";
@@ -19,7 +19,12 @@ interface SimilarMovieType {
 }
 
 const Live = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, season, episode } = useParams<{
+    id: string;
+    season?: string;
+    episode?: string;
+  }>();
+  const location = useLocation();
   const navigate = useNavigate();
 
   const [similar, setSimilar] = useState<SimilarMovieType[]>([]);
@@ -27,7 +32,7 @@ const Live = () => {
   const [posterPath, setPosterPath] = useState<string>("");
   const [user, setUser] = useState<User | null>(null);
 
-  // ✅ Tracking auth state
+  // ✅ Track auth state
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -35,49 +40,59 @@ const Live = () => {
     return () => unsub();
   }, []);
 
-  // ✅ Fetching similar movies
+  // Detect if we're watching a movie or TV show
+  const isMovie = location.pathname.startsWith("/live/movie");
+  const isTv = location.pathname.startsWith("/live/tv");
+
+  // ✅ Fetch details + similar (works for both movies/TV shows)
   useEffect(() => {
     if (!id) return;
+
+    fetchMovieDetails(Number(id))
+      .then((movie) => {
+        setTitle(movie.title || movie.name || "Untitled");
+        setPosterPath(movie.poster_path || "");
+      })
+      .catch((err) => console.error(err));
+
     fetchSimilarMovies(Number(id))
       .then((movies) => {
         const cleaned = movies
           .filter((m) => m.poster_path)
           .map((m) => ({
             id: m.id,
-            title: m.title,
+            title: m.title || m.name,
             poster_path: m.poster_path!,
-            release_date: m.release_date || "Unknown",
+            release_date: m.release_date || m.first_air_date || "Unknown",
           }));
         setSimilar(cleaned);
       })
       .catch((err) => console.error(err));
   }, [id]);
 
-  // ✅ Fetching movie details
-  useEffect(() => {
-    if (!id) return;
-    fetchMovieDetails(Number(id))
-      .then((movie) => {
-        setTitle(movie.title);
-        setPosterPath(movie.poster_path || "");
-      })
-      .catch((err) => console.error(err));
-  }, [id]);
-
-  // ✅ Saving last watched movie
+  // ✅ Save last watched
   useEffect(() => {
     if (!id || !user) return;
-    if (!title || !posterPath) return; 
-  
+    if (!title || !posterPath) return;
+
     saveLastWatched({
       movieId: id,
       title,
       poster_path: posterPath,
     }).catch((err) => console.error("Failed to save watch progress:", err));
   }, [id, user, title, posterPath]);
-  
 
-  const embedUrl = `${import.meta.env.VITE_LIVE_BASE_URL}${id}&autoplay=1`;
+  // ✅ Build embed URL
+  let embedUrl = "";
+  if (isMovie) {
+    embedUrl = `https://vidsrc.xyz/embed/movie/${id}?autoplay=1`;
+  } else if (isTv) {
+    if (season && episode) {
+      embedUrl = `https://vidsrc.xyz/embed/tv/${id}/${season}-${episode}?autoplay=1&autonext=1`;
+    } else {
+      embedUrl = `https://vidsrc.xyz/embed/tv/${id}?autoplay=1`;
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100 font-sans">
@@ -106,10 +121,11 @@ const Live = () => {
             />
           </div>
         </div>
+
         {/* ✅ Continue Watching Section */}
         {user && <ContinueWatching />}
 
-        {/* Similar Movies */}
+        {/* Similar Movies/Shows */}
         <div className="px-4 sm:px-6 lg:px-12 xl:px-20 py-8 bg-gray-950">
           <h2 className="text-lg sm:text-xl font-semibold mb-6">
             You May Also Like
@@ -132,13 +148,21 @@ const Live = () => {
                   </p>
                   <div className="flex gap-2 mt-2">
                     <button
-                      onClick={() => navigate(`/movie/${rel.id}`)}
+                      onClick={() =>
+                        isMovie
+                          ? navigate(`/live/movie/${rel.id}`)
+                          : navigate(`/live/tv/${rel.id}`)
+                      }
                       className="text-xs px-2 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1"
                     >
                       <Play size={12} /> Play
                     </button>
                     <button
-                      onClick={() => navigate(`/movie/${rel.id}`)}
+                      onClick={() =>
+                        isMovie
+                          ? navigate(`/movie/${rel.id}`)
+                          : navigate(`/tv/${rel.id}`)
+                      }
                       className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-800 rounded-md flex items-center gap-1"
                     >
                       <Info size={12} /> More Info
