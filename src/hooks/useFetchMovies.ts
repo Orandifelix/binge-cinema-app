@@ -9,6 +9,18 @@ export interface Movie {
   media_type: "movie" | "tv";
 }
 
+// type for TMDB API result item
+interface TMDBResult {
+  id: number;
+  title?: string;
+  name?: string;
+  release_date?: string;
+  first_air_date?: string;
+  backdrop_path?: string;
+  vote_average?: number;
+  media_type?: "movie" | "tv";
+}
+
 // hook
 import { useEffect, useState } from "react";
 
@@ -30,9 +42,9 @@ const useFetchMovies = (endpoint: string) => {
         );
 
         if (!res.ok) throw new Error(`Error ${res.status}`);
-        const data = await res.json();
+        const data: { results: TMDBResult[] } = await res.json();
 
-        const mapped: Movie[] = data.results.map((m: any) => ({
+        const mapped: Movie[] = data.results.map((m) => ({
           id: m.id,
           title: m.title || m.name || "Unknown",
           year: (m.release_date || m.first_air_date || "N/A").split("-")[0],
@@ -59,4 +71,3 @@ const useFetchMovies = (endpoint: string) => {
 };
 
 export default useFetchMovies;
-

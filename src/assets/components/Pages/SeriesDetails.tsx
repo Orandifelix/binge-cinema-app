@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../Navbar";
@@ -69,21 +70,28 @@ const SeriesDetails: React.FC = () => {
   );
 
   // Fetch series details & similar
-  useEffect(() => {
-    if (!seriesId) return;
-    setLoading(true);
 
-    Promise.all([fetchSeriesDetails(seriesId), fetchSimilarSeries(seriesId)])
-      .then(([details, related]) => {
-        setSeries(details);
-        setSimilar(related);
-        if (details.seasons?.length) {
-          setSelectedSeason(details.seasons[0].season_number);
-        }
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  }, [seriesId]);
+  Promise.all([fetchSeriesDetails(seriesId), fetchSimilarSeries(seriesId)])
+    .then(([details, related]) => {
+      setSeries(details);
+  
+      // map to ensure "name" is always a string
+      const mappedSimilar: SimilarSeriesType[] = related.map((item: any) => ({
+        id: item.id,
+        name: item.name || item.title || "Unknown",
+        poster_path: item.poster_path || "",
+        first_air_date: item.first_air_date || "N/A",
+      }));
+  
+      setSimilar(mappedSimilar);
+  
+      if (details.seasons?.length) {
+        setSelectedSeason(details.seasons[0].season_number);
+      }
+    })
+    .catch((err) => console.error(err))
+    .finally(() => setLoading(false));
+  
 
   // Fetch episodes when season changes
   useEffect(() => {

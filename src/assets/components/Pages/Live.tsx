@@ -89,11 +89,11 @@ const Live = () => {
 
       fetchSimilarMovies(Number(id))
         .then((movies) => {
-          const cleaned = movies
+          const cleaned: SimilarMovieType[] = movies
             .filter((m) => m.poster_path)
             .map((m) => ({
               id: m.id,
-              title: m.title || m.name,
+              title: m.title || m.name || "Untitled", // ✅ ensure string
               poster_path: m.poster_path!,
               release_date: m.release_date || m.first_air_date || "Unknown",
             }));
@@ -117,11 +117,11 @@ const Live = () => {
 
       fetchSimilarSeries(Number(id))
         .then((shows) => {
-          const cleaned = shows
+          const cleaned: SimilarMovieType[] = shows
             .filter((s) => s.poster_path)
             .map((s) => ({
               id: s.id,
-              title: s.title || s.name,
+              title: s.title || s.name || "Untitled", // ✅ ensure string
               poster_path: s.poster_path!,
               release_date: s.release_date || s.first_air_date || "Unknown",
             }));
