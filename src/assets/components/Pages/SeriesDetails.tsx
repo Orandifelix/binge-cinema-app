@@ -3,14 +3,17 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
-import { Play, Clock, Star, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, Clock, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import PlayModal from "../../components/Landing/Play_modal";
+import type { Movie } from "../../../hooks/useFetchMovies";
+
 import {
   fetchSeriesDetails,
   fetchSeriesTrailer,
   fetchSimilarSeries,
   fetchSeasonEpisodes,
 } from "../../../lib/tmdb";
+import MovieCard from "../Home/MovieCard";
 
 // Types
 interface GenreItem {
@@ -36,7 +39,9 @@ interface SimilarSeriesType {
   name: string;
   poster_path: string;
   first_air_date: string;
+  vote_average?: number; 
 }
+
 
 interface Episode {
   id: number;
@@ -81,8 +86,9 @@ const SeriesDetails: React.FC = () => {
           name: item.name || item.title || "Unknown",
           poster_path: item.poster_path || "",
           first_air_date: item.first_air_date || "N/A",
+          vote_average: item.vote_average ?? 0,
         }));
-        setSimilar(mappedSimilar);
+        setSimilar(mappedSimilar);        
 
         if (details.seasons?.length) {
           setSelectedSeason(details.seasons[0].season_number);
@@ -254,45 +260,29 @@ const SeriesDetails: React.FC = () => {
       </div>
 
       {/* Related Series */}
-      <div className="px-4 sm:px-6 md:px-12 py-12">
-        <h2 className="text-lg sm:text-xl font-semibold mb-6 text-center md:text-left">
-          You may also like
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {similar.map((rel) => (
-            <div
-              key={rel.id}
-              className="relative group overflow-hidden rounded-lg shadow-lg transition-transform duration-300 hover:scale-105 cursor-pointer"
-            >
-              <img
-                src={`https://image.tmdb.org/t/p/w300${rel.poster_path}`}
-                alt={rel.name}
-                className="w-full aspect-[2/3] object-cover"
-              />
-              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-3 py-2 text-sm">
-                <p className="font-semibold truncate">{rel.name}</p>
-                <p className="text-gray-300 text-xs">
-                  {rel.first_air_date?.slice(0, 4)}
-                </p>
-              </div>
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity duration-300">
-                <button
-                  onClick={() => navigate(`/tv/${rel.id}`)}
-                  className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition"
-                >
-                  <Play size={14} /> Play
-                </button>
-                <button
-                  onClick={() => navigate(`/tv/${rel.id}`)}
-                  className="flex items-center gap-1 px-3 py-1 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-600 transition"
-                >
-                  <Info size={14} /> Info
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="px-4 sm:px-6 md:px-12 py-12">
+          <h2 className="text-lg sm:text-xl font-semibold mb-6 text-center md:text-left">
+            You may also like
+          </h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {similar.map((rel) => {
+              const movieLike: Movie = {
+                id: rel.id,
+                title: rel.name,
+                year: rel.first_air_date ? rel.first_air_date.slice(0, 4) : "N/A",
+                genre: "TV", // optional: replace with actual genre if you fetch genres
+                rating: (rel.vote_average ?? 0).toFixed(1), // keep string shape your Movie type expects
+                backdrop: rel.poster_path
+                  ? `https://image.tmdb.org/t/p/w300${rel.poster_path}`
+                  : "",
+                media_type: "tv",
+              };
+
+              return <MovieCard key={movieLike.id} movie={movieLike} />;
+            })}
+          </div>
         </div>
-      </div>
 
       <Footer />
 
