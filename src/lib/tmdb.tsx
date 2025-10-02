@@ -6,6 +6,8 @@ const getHeaders = () => ({
   accept: "application/json",
 });
 
+
+
 // --- TYPES ---
 export type Genre = { id: number; name: string };
 
@@ -50,6 +52,23 @@ export interface Movie {
   backdrop: string;
   media_type: "movie" | "tv";
 }
+
+
+// --- SEARCH ---
+export async function searchMulti(query: string): Promise<TMDBMovie[]> {
+  const res = await fetch(
+    `${BASE}/search/multi?query=${encodeURIComponent(query)}&language=en-US`,
+    { headers: getHeaders() }
+  );
+  if (!res.ok) throw new Error(`searchMulti: ${res.status}`);
+  const data: { results: TMDBMovie[] } = await res.json();
+
+  return data.results.filter(
+    (r) => r.media_type === "movie" || r.media_type === "tv"
+  );
+}
+
+
 
 // --- GENRES ---
 export async function fetchGenres(): Promise<Genre[]> {
