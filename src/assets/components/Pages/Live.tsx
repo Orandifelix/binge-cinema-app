@@ -297,6 +297,12 @@ const Live = () => {
 
         {/* ✅ Continue Watching Section */}
         {user && <ContinueWatching />}
+        <div className="flex items-center mb-8 px-4 sm:px-6 md:px-12 lg:px-18">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mr-4">
+            You may also like
+            </h2>
+            <div className="flex-1 h-[2px] bg-gradient-to-r from-red-600 to-transparent"></div>
+         </div>
 
         {/* Similar Movies/Shows */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 lg:px-18">

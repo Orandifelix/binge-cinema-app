@@ -38,9 +38,12 @@ const ContinueWatching: React.FC = () => {
   return (
     <div className="px-4 sm:px-6 lg:px-12 xl:px-20 py-8 bg-gray-950">
       {/* Section Title */}
-      <h2 className="text-lg sm:text-xl font-semibold mb-6">
-        Continue Watching
+      <div className="flex items-center mb-8 ">
+      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mr-4">
+     Continue Watching
       </h2>
+      <div className="flex-1 h-[2px] bg-gradient-to-r from-red-600 to-transparent"></div>
+   </div>
 
       {/* {/* cards for the layout* - continue watching  movies/*} */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">

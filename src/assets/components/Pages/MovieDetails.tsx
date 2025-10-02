@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
-import { Play, Clock, Star, Info } from "lucide-react";
+import { Play, Clock, Star, } from "lucide-react";
 import {
   fetchMovieDetails,
   fetchSimilarMovies,
   fetchMovieTrailer,
 } from "../../../lib/tmdb";
 import PlayModal from "../../components/Landing/Play_modal";
+import type { Movie } from "../../../hooks/useFetchMovies";
+import MovieCard from "../Home/MovieCard";
 
 // Types
 interface GenreItem {
@@ -33,6 +35,7 @@ interface SimilarMovieType {
   title: string;
   poster_path: string;
   release_date: string;
+  vote_average?: number;
 }
 
 const MovieDetails: React.FC = () => {
@@ -48,15 +51,35 @@ const MovieDetails: React.FC = () => {
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [trailerUrl, setTrailerUrl] = useState("");
 
-  // Fetch movie details & similar movies
   useEffect(() => {
     if (!movieId) return;
     setLoading(true);
-
+  
     Promise.all([fetchMovieDetails(movieId), fetchSimilarMovies(movieId)])
       .then(([details, related]) => {
-        setMovie(details);
-        setSimilar(related);
+        // Map TMDBMovie -> MovieDetailsType
+        const mappedDetails: MovieDetailsType = {
+          id: details.id,
+          title: details.title || details.name || "Unknown",
+          overview: details.overview || "No overview available",
+          backdrop_path: details.backdrop_path || "",
+          poster_path: details.poster_path || "",
+          vote_average: details.vote_average ?? 0,
+          runtime: details.runtime ?? 0,
+          release_date: details.release_date || details.first_air_date || "N/A",
+          genres: details.genres || [],
+        };
+        setMovie(mappedDetails);
+  
+        // Map TMDBMovie[] -> SimilarMovieType[]
+        const mappedRelated: SimilarMovieType[] = related.map((rel) => ({
+          id: rel.id,
+          title: rel.title || rel.name || "Unknown",
+          poster_path: rel.poster_path || "",
+          release_date: rel.release_date || rel.first_air_date || "N/A",
+          vote_average: rel.vote_average ?? 0,
+        }));
+        setSimilar(mappedRelated);
       })
       .catch((err: unknown) => {
         if (err instanceof Error) console.error(err.message);
@@ -64,6 +87,7 @@ const MovieDetails: React.FC = () => {
       })
       .finally(() => setLoading(false));
   }, [movieId]);
+  
 
   // Play trailer
   const playTrailer = async (id: number) => {
@@ -173,44 +197,30 @@ const MovieDetails: React.FC = () => {
   </div>
 
   {/* Related movies */}
-  <div className="px-4 sm:px-6 md:px-12 py-12">
-    <h2 className="text-lg sm:text-xl font-semibold mb-6 text-center md:text-left">
-      You may also like
-    </h2>
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-      {similar.map((rel: SimilarMovieType) => (
-        <div
-          key={rel.id}
-          className="bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition"
-        >
-          <img
-            src={`https://image.tmdb.org/t/p/w300${rel.poster_path}`}
-            alt={rel.title}
-            className="w-full aspect-[2/3] object-cover"
-          />
-          <div className="p-2 text-xs sm:text-sm">
-            <p className="font-semibold truncate">{rel.title}</p>
-            <p className="text-gray-400">{rel.release_date?.slice(0, 4)}</p>
-            <div className="flex gap-2 mt-2">
-              <button
-                onClick={() => navigate(`/movie/${rel.id}`)}
-                className="text-xs px-2 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1"
-              >
-                <Play size={12} /> Play
-              </button>
-              <button
-                onClick={() => navigate(`/movie/${rel.id}`)}
-                className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-800 rounded-md flex items-center gap-1"
-              >
-                <Info size={12} /> More Info
-              </button>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
+      <div className="flex items-center mb-8 px-4 sm:px-6 md:px-12 lg:px-18">
+         <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mr-4">
+        You may also like
+         </h2>
+         <div className="flex-1 h-[2px] bg-gradient-to-r from-red-600 to-transparent"></div>
+      </div>
 
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:px-18 md:p-6 sm:p-2 lg:grid-cols-6 gap-4">
+      {similar.map((rel) => {
+        const movieLike: Movie = {
+          id: rel.id,
+          title: rel.title,
+          year: rel.release_date ? rel.release_date.slice(0, 4) : "N/A",
+          genre: "Movie", // you can refine if you fetch genre
+          rating: (rel.vote_average ?? 0).toFixed(1),
+          backdrop: rel.poster_path
+            ? `https://image.tmdb.org/t/p/w300${rel.poster_path}`
+            : "",
+          media_type: "movie",
+        };
+
+        return <MovieCard key={movieLike.id} movie={movieLike} />;
+      })}
+      </div>
   <Footer />
 
   {/* Trailer modal */}
