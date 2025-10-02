@@ -63,14 +63,14 @@ const BrowseType: React.FC = () => {
                   m.release_date?.slice(0, 4) ||
                   m.first_air_date?.slice(0, 4) ||
                   "N/A",
-                genre: "N/A", // placeholder unless you map TMDB genres
+                genre: "N/A", 
                 rating: (m.vote_average ?? 0).toFixed(1),
                 backdrop: m.poster_path
                   ? `https://image.tmdb.org/t/p/w300${m.poster_path}`
                   : m.backdrop_path
                   ? `https://image.tmdb.org/t/p/w300${m.backdrop_path}`
                   : "https://via.placeholder.com/300x450?text=No+Image",
-                media_type: m.media_type === "tv" ? "tv" : "movie", // ✅ fix
+                media_type: m.media_type === "tv" ? "tv" : "movie",  
               };
 
               return <MovieCard key={m.id} movie={movieLike} />;
