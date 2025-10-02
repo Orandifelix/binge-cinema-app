@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
-import { Play, Clock, Star, Info } from "lucide-react";
+import { Play, Clock, Star, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import PlayModal from "../../components/Landing/Play_modal";
 import {
   fetchSeriesDetails,
@@ -64,34 +64,33 @@ const SeriesDetails: React.FC = () => {
   const [page, setPage] = useState(0);
   const pageSize = 6;
   const totalPages = Math.ceil(episodes.length / pageSize);
-  const paginatedEpisodes = episodes.slice(
-    page * pageSize,
-    page * pageSize + pageSize
-  );
+  const paginatedEpisodes = episodes.slice(page * pageSize, page * pageSize + pageSize);
 
   // Fetch series details & similar
+  useEffect(() => {
+    if (!seriesId) return;
+    setLoading(true);
 
-  Promise.all([fetchSeriesDetails(seriesId), fetchSimilarSeries(seriesId)])
-    .then(([details, related]) => {
-      setSeries(details);
-  
-      // map to ensure "name" is always a string
-      const mappedSimilar: SimilarSeriesType[] = related.map((item: any) => ({
-        id: item.id,
-        name: item.name || item.title || "Unknown",
-        poster_path: item.poster_path || "",
-        first_air_date: item.first_air_date || "N/A",
-      }));
-  
-      setSimilar(mappedSimilar);
-  
-      if (details.seasons?.length) {
-        setSelectedSeason(details.seasons[0].season_number);
-      }
-    })
-    .catch((err) => console.error(err))
-    .finally(() => setLoading(false));
-  
+    Promise.all([fetchSeriesDetails(seriesId), fetchSimilarSeries(seriesId)])
+      .then(([details, related]) => {
+        setSeries(details);
+
+        // Map to ensure "name" is always present
+        const mappedSimilar: SimilarSeriesType[] = related.map((item: any) => ({
+          id: item.id,
+          name: item.name || item.title || "Unknown",
+          poster_path: item.poster_path || "",
+          first_air_date: item.first_air_date || "N/A",
+        }));
+        setSimilar(mappedSimilar);
+
+        if (details.seasons?.length) {
+          setSelectedSeason(details.seasons[0].season_number);
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, [seriesId]);
 
   // Fetch episodes when season changes
   useEffect(() => {
@@ -200,37 +199,17 @@ const SeriesDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Episodes Layer */}
-      <div className="px-4 sm:px-6 md:px-12 py-10">
-        {/* Season selector */}
-        <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-lg sm:text-xl font-semibold">Episodes</h2>
-          <select
-            value={selectedSeason}
-            onChange={(e) => setSelectedSeason(Number(e.target.value))}
-            className="bg-gray-800 text-white rounded px-3 py-1 text-sm"
-          >
-            {series.seasons.map((season) => (
-              <option key={season.season_number} value={season.season_number}>
-                {season.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Episodes grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* Episodes grid with navigation */}
+      <div className="relative px-12 py-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {paginatedEpisodes.map((ep) => (
             <div
               key={ep.id}
               className="relative bg-gray-900 rounded-lg overflow-hidden group cursor-pointer"
               onClick={() =>
-                navigate(
-                  `/live/tv/${id}/season/${selectedSeason}/episode/${ep.episode_number}`
-                )
+                navigate(`/live/tv/${id}/season/${selectedSeason}/episode/${ep.episode_number}`)
               }
             >
-              {/* Episode thumbnail */}
               <img
                 src={
                   ep.still_path
@@ -241,28 +220,12 @@ const SeriesDetails: React.FC = () => {
                 className="w-full aspect-video object-cover group-hover:opacity-80 transition"
               />
 
-              {/* Overlay Play Button */}
-              <div
-                className="absolute inset-0 flex items-center justify-center
-                        opacity-0 group-hover:opacity-100 transition"
-              >
-                <div
-                  className="w-12 h-12 sm:w-14 sm:h-14 bg-black/40 
-                              rounded-full flex items-center justify-center
-                              border border-white/40"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-6 h-6 sm:w-7 sm:h-7 text-white"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-black/40 rounded-full flex items-center justify-center border border-white/40">
+                  <Play className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
               </div>
 
-              {/* Episode details */}
               <div className="p-2 text-xs sm:text-sm">
                 <p className="font-semibold truncate">{ep.name}</p>
                 <p className="text-gray-400">Ep {ep.episode_number}</p>
@@ -271,23 +234,23 @@ const SeriesDetails: React.FC = () => {
           ))}
         </div>
 
-        {/* Pagination */}
-        <div className="flex justify-between mt-6">
+        {/* Pagination arrows */}
+        {page > 0 && (
           <button
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-            className="px-3 py-1 bg-gray-800 rounded disabled:opacity-50"
+            onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 bg-black/40 hover:bg-black p-2 sm:p-3 rounded-full"
           >
-            Prev
+            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </button>
+        )}
+        {page + 1 < totalPages && (
           <button
-            disabled={page >= totalPages - 1}
-            onClick={() => setPage((p) => p + 1)}
-            className="px-3 py-1 bg-gray-800 rounded disabled:opacity-50"
+            onClick={() => setPage((prev) => (prev + 1 < totalPages ? prev + 1 : prev))}
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 bg-black/40 hover:bg-black p-2 sm:p-3 rounded-full"
           >
-            Next
+            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </button>
-        </div>
+        )}
       </div>
 
       {/* Related Series */}
@@ -306,16 +269,12 @@ const SeriesDetails: React.FC = () => {
                 alt={rel.name}
                 className="w-full aspect-[2/3] object-cover"
               />
-
-              {/* Title overlay */}
               <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-3 py-2 text-sm">
                 <p className="font-semibold truncate">{rel.name}</p>
                 <p className="text-gray-300 text-xs">
                   {rel.first_air_date?.slice(0, 4)}
                 </p>
               </div>
-
-              {/* Hover buttons */}
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity duration-300">
                 <button
                   onClick={() => navigate(`/tv/${rel.id}`)}
