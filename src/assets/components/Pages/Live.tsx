@@ -9,7 +9,7 @@ import {
   fetchSeriesDetails,
   fetchSeasonEpisodes,
 } from "../../../lib/tmdb";
-import { Play, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "../../../firebase";
 
@@ -17,13 +17,20 @@ import { auth } from "../../../firebase";
 import { saveLastWatched } from "../../../services/watchedService";
 import ContinueWatching from "../ContinueWatching";
 
+ 
+import type { Movie } from "../../../hooks/useFetchMovies";
+import MovieCard from "../Home/MovieCard";
+
+
 // Types
 interface SimilarMovieType {
   id: number;
   title: string;
   poster_path: string;
   release_date: string;
+  vote_average?: number;  
 }
+
 
 interface SeriesDetailsType {
   id: number;
@@ -93,9 +100,10 @@ const Live = () => {
             .filter((m) => m.poster_path)
             .map((m) => ({
               id: m.id,
-              title: m.title || m.name || "Untitled", // ✅ ensure string
+              title: m.title || m.name || "Untitled",  
               poster_path: m.poster_path!,
               release_date: m.release_date || m.first_air_date || "Unknown",
+              vote_average: m.vote_average ?? 0,
             }));
           setSimilar(cleaned);
         })
@@ -121,9 +129,10 @@ const Live = () => {
             .filter((s) => s.poster_path)
             .map((s) => ({
               id: s.id,
-              title: s.title || s.name || "Untitled", // ✅ ensure string
+              title: s.title || s.name || "Untitled",  
               poster_path: s.poster_path!,
               release_date: s.release_date || s.first_air_date || "Unknown",
+              vote_average: s.vote_average ?? 0,
             }));
           setSimilar(cleaned);
         })
@@ -290,53 +299,24 @@ const Live = () => {
         {user && <ContinueWatching />}
 
         {/* Similar Movies/Shows */}
-        <div className="px-4 sm:px-6 lg:px-12 xl:px-20 py-8 bg-gray-950">
-          <h2 className="text-lg sm:text-xl font-semibold mb-6">
-            You May Also Like
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {similar.map((rel) => (
-              <div
-                key={rel.id}
-                className="bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition"
-              >
-                <img
-                  src={`https://image.tmdb.org/t/p/w300${rel.poster_path}`}
-                  alt={rel.title}
-                  className="w-full aspect-[2/3] object-cover"
-                />
-                <div className="p-2 text-xs sm:text-sm">
-                  <p className="font-semibold truncate">{rel.title}</p>
-                  <p className="text-gray-400">
-                    {rel.release_date?.slice(0, 4)}
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() =>
-                        isMovie
-                          ? navigate(`/live/${rel.id}`)
-                          : navigate(`/live/tv/${rel.id}`)
-                      }
-                      className="text-xs px-2 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1"
-                    >
-                      <Play size={12} /> Play
-                    </button>
-                    <button
-                      onClick={() =>
-                        isMovie
-                          ? navigate(`/movie/${rel.id}`)
-                          : navigate(`/tv/${rel.id}`)
-                      }
-                      className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-800 rounded-md flex items-center gap-1"
-                    >
-                      <Info size={12} /> More Info
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 lg:px-18">
+        {similar.map((rel) => {
+          const movieLike: Movie = {
+            id: rel.id,
+            title: rel.title,
+            year: rel.release_date ? rel.release_date.slice(0, 4) : "N/A",
+            genre: isMovie ? "Movie" : "TV", // quick label
+            rating: (rel.vote_average ?? 0).toFixed(1),
+            backdrop: rel.poster_path
+              ? `https://image.tmdb.org/t/p/w300${rel.poster_path}`
+              : "",
+            media_type: isMovie ? "movie" : "tv",
+          };
+
+          return <MovieCard key={movieLike.id} movie={movieLike} />;
+        })}
         </div>
+
       </main>
 
       <Footer />
