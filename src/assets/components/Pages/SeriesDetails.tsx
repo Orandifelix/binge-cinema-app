@@ -261,9 +261,12 @@ const SeriesDetails: React.FC = () => {
 
       {/* Related Series */}
         <div className="px-4 sm:px-6 md:px-12 py-12">
-          <h2 className="text-lg sm:text-xl font-semibold mb-6 text-center md:text-left">
-            You may also like
-          </h2>
+            <div className="flex items-center mb-8">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mr-4">
+              You may also like
+                </h2>
+                <div className="flex-1 h-[2px] bg-gradient-to-r from-red-600 to-transparent"></div>
+           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {similar.map((rel) => {
