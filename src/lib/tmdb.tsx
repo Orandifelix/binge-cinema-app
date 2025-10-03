@@ -163,17 +163,17 @@ export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBM
 
   const endpointForType = (t: string) => {
     switch (t) {
-      case "top_rated": return "/movie/top_rated";
-      case "latest":    return "/movie/now_playing"; // "latest" returns 1 item, so fallback
-      case "popular":   return "/movie/popular";
-      case "upcoming":  return "/movie/upcoming";
-      case "tv":        return "/tv/popular";
-      case "movie":     return "/discover/movie?sort_by=popularity.desc";
-      default:          return "/discover/movie?sort_by=popularity.desc";
+      case "top_rated": return { url: "/movie/top_rated", media: "movie" };
+      case "latest":    return { url: "/movie/now_playing", media: "movie" };
+      case "popular":   return { url: "/movie/popular", media: "movie" };
+      case "upcoming":  return { url: "/movie/upcoming", media: "movie" };
+      case "tv":        return { url: "/tv/popular", media: "tv" };
+      case "movie":     return { url: "/discover/movie?sort_by=popularity.desc", media: "movie" };
+      default:          return { url: "/discover/movie?sort_by=popularity.desc", media: "movie" };
     }
   };
 
-  const baseEndpoint = endpointForType(type);
+  const { url: baseEndpoint, media } = endpointForType(type);
 
   while (results.length < limit && page <= maxPages) {
     const url = baseEndpoint.includes("?")
@@ -183,10 +183,11 @@ export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBM
     const res = await fetch(url, { headers: getHeaders() });
     if (!res.ok) throw new Error(`fetchMoviesByType '${type}': ${res.status}`);
 
-    const data: { results?: TMDBMovie[] } | TMDBMovie[] = await res.json();
+    const data: { results?: TMDBMovie[] } = await res.json();
 
-    if (Array.isArray(data)) results.push(...data);
-    else if (Array.isArray(data.results)) results.push(...data.results);
+    if (Array.isArray(data.results)) {
+      results.push(...data.results.map((r) => ({ ...r, media_type: r.media_type ?? media })));
+    }
 
     page++;
   }

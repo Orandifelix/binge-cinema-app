@@ -59,22 +59,20 @@ const BrowseType: React.FC = () => {
               const movieLike: Movie = {
                 id: m.id,
                 title: m.title || m.name || "Untitled",
-                year:
-                  m.release_date?.slice(0, 4) ||
-                  m.first_air_date?.slice(0, 4) ||
-                  "N/A",
-                genre: "N/A", 
+                year: m.release_date?.slice(0, 4) || m.first_air_date?.slice(0, 4) || "N/A",
+                genre: "N/A",
                 rating: (m.vote_average ?? 0).toFixed(1),
                 backdrop: m.poster_path
                   ? `https://image.tmdb.org/t/p/w300${m.poster_path}`
                   : m.backdrop_path
                   ? `https://image.tmdb.org/t/p/w300${m.backdrop_path}`
                   : "https://via.placeholder.com/300x450?text=No+Image",
-                media_type: m.media_type === "tv" ? "tv" : "movie",  
+                media_type: m.media_type as "movie" | "tv", 
               };
 
               return <MovieCard key={m.id} movie={movieLike} />;
             })}
+
 
           </div>
         )}
