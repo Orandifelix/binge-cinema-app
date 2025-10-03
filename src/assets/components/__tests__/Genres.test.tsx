@@ -1,43 +1,59 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, it, expect, vi } from "vitest";
-import Genres from "../Pages/Genres";
+import { describe, it, expect, vi, beforeEach } from "vitest";   
+import Genres from "../../components/Pages/Genres";
+import type { Movie } from "../../../hooks/useFetchMovies";
 
-// ✅ Mock TMDB module
+// mock tmdb
 vi.mock("../../../lib/tmdb", () => ({
-  fetchGenres: vi.fn(() =>
-    Promise.resolve([{ id: 1, name: "Action" }, { id: 2, name: "Drama" }])
-  ),
-  fetchMoviesByGenre: vi.fn(() =>
-    Promise.resolve([{ id: 101, title: "Mad Max", poster_path: "/mm.jpg" }])
+  fetchGenres: vi.fn(),
+  fetchMoviesByGenre: vi.fn(),
+  fetchSeriesByGenre: vi.fn(),
+}));
+
+import {
+  fetchGenres,
+  fetchMoviesByGenre,
+  fetchSeriesByGenre,
+} from "../../../lib/tmdb";
+
+vi.mock("../../components/Navbar", () => ({
+  default: () => <div data-testid="navbar">Navbar</div>,
+}));
+vi.mock("../../components/Footer", () => ({
+  default: () => <div data-testid="footer">Footer</div>,
+}));
+vi.mock("../../components/Home/MovieCard", () => ({
+  default: ({ movie }: { movie: Movie }) => (
+    <div data-testid="movie-card">{movie?.title}</div>
   ),
 }));
 
-describe("Genres", () => {
-  it("fetches and displays genres", async () => {
-    render(
-      <MemoryRouter>
-        <Genres />
-      </MemoryRouter>
-    );
-
-    // Should show the mocked "Action" genre
-    expect(await screen.findByText("Action")).toBeInTheDocument();
-    expect(await screen.findByText("Drama")).toBeInTheDocument();
+describe("Genres Component", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("fetches movies on genre click", async () => {
+  it("fetches and displays movies + tv when genre is clicked", async () => {
+    (fetchGenres as ReturnType<typeof vi.fn>).mockResolvedValue([{ id: 1, name: "Action" }]);
+    (fetchMoviesByGenre as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: 101, title: "Mad Max", poster_path: "/poster.jpg", release_date: "2015-05-15", vote_average: 7.8, media_type: "movie" },
+    ]);
+    (fetchSeriesByGenre as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: 202, name: "Breaking Bad", poster_path: "/poster.jpg", first_air_date: "2008-01-20", vote_average: 9.5, media_type: "tv" },
+    ]);
+
     render(
       <MemoryRouter>
         <Genres />
       </MemoryRouter>
     );
 
-    // Click on Action genre
-    const genre = await screen.findByText("Action");
-    fireEvent.click(genre);
+    fireEvent.click(await screen.findByText("Action"));
 
-    // Wait for the mocked movie to appear
-    expect(await screen.findByText("Mad Max")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Mad Max")).toBeInTheDocument();
+      expect(screen.getByText("Breaking Bad")).toBeInTheDocument();
+    });
   });
 });
