@@ -18,7 +18,8 @@ const MovieCard: React.FC<Props> = ({ movie }) => {
     }
   };
 
-  const goToLive = () => {
+  const goToLive = (e: React.MouseEvent) => {
+    e.stopPropagation(); // ⛔ prevent parent click
     if (movie.media_type === "tv") {
       navigate(`/live/tv/${movie.id}`);
     } else {
@@ -26,8 +27,16 @@ const MovieCard: React.FC<Props> = ({ movie }) => {
     }
   };
 
+  const goToDetailsButton = (e: React.MouseEvent) => {
+    e.stopPropagation(); // ⛔ prevent parent click
+    goToDetails();
+  };
+
   return (
-    <div className="relative group overflow-hidden rounded-lg shadow-lg transition-transform duration-300 hover:scale-105">
+    <div
+      className="relative group overflow-hidden rounded-lg shadow-lg transition-transform duration-300 hover:scale-105 cursor-pointer"
+      onClick={goToDetails}
+    >
       {movie.backdrop && (
         <img
           src={movie.backdrop}
@@ -59,7 +68,7 @@ const MovieCard: React.FC<Props> = ({ movie }) => {
           <Play size={16} /> Play
         </button>
         <button
-          onClick={goToDetails}
+          onClick={goToDetailsButton}
           className="flex items-center gap-1 px-3 py-1 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-600 transition"
         >
           <Info size={16} /> Info
@@ -70,3 +79,4 @@ const MovieCard: React.FC<Props> = ({ movie }) => {
 };
 
 export default MovieCard;
+
