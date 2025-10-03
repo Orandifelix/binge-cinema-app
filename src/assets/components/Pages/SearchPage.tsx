@@ -59,7 +59,7 @@ const SearchPage: React.FC = () => {
                     item.release_date?.slice(0, 4) ||
                     item.first_air_date?.slice(0, 4) ||
                     "N/A",
-                  genre: "N/A", // placeholder unless you map genres
+                  genre: "N/A", 
                   rating: (item.vote_average ?? 0).toFixed(1),
                   backdrop: item.poster_path
                     ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
