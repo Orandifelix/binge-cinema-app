@@ -112,7 +112,7 @@ export async function fetchMovieDetails(id: number): Promise<TMDBMovie> {
   return res.json();
 }
 
-export async function fetchSimilarMovies(id: number, limit = 12): Promise<TMDBMovie[]> {
+export async function fetchSimilarMovies(id: number, limit = 18): Promise<TMDBMovie[]> {
   const res = await fetch(`${BASE}/movie/${id}/similar?language=en-US&page=1`, { headers: getHeaders() });
   if (!res.ok) throw new Error(`fetchSimilarMovies: ${res.status}`);
   const data: { results: TMDBMovie[] } = await res.json();
@@ -140,7 +140,7 @@ export async function fetchSeasonEpisodes(seriesId: number, seasonNumber: number
   return season.episodes ?? [];
 }
 
-export async function fetchSimilarSeries(id: number, limit = 12) {
+export async function fetchSimilarSeries(id: number, limit = 18) {
   const res = await fetch(`${BASE}/tv/${id}/similar?language=en-US&page=1`, { headers: getHeaders() });
   if (!res.ok) throw new Error(`fetchSimilarSeries: ${res.status}`);
   const data: { results: TMDBMovie[] } = await res.json();
@@ -161,18 +161,18 @@ export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBM
   let page = 1;
   const maxPages = 6;
 
-  const endpointForType = (t: string) => {
-    switch (t) {
-      case "top_rated": return { url: "/movie/top_rated", media: "movie" };
-      case "latest":    return { url: "/movie/now_playing", media: "movie" };
-      case "popular":   return { url: "/movie/popular", media: "movie" };
-      case "upcoming":  return { url: "/movie/upcoming", media: "movie" };
-      case "tv":        return { url: "/tv/popular", media: "tv" };
-      case "movie":     return { url: "/discover/movie?sort_by=popularity.desc", media: "movie" };
-      default:          return { url: "/discover/movie?sort_by=popularity.desc", media: "movie" };
-    }
-  };
-
+    const endpointForType = (t: string): { url: string; media: "movie" | "tv" } => {
+      switch (t) {
+        case "top_rated": return { url: "/movie/top_rated", media: "movie" };
+        case "latest":    return { url: "/movie/now_playing", media: "movie" };
+        case "popular":   return { url: "/movie/popular", media: "movie" };
+        case "upcoming":  return { url: "/movie/upcoming", media: "movie" };
+        case "tv":        return { url: "/tv/popular", media: "tv" };
+        case "movie":     return { url: "/discover/movie?sort_by=popularity.desc", media: "movie" };
+        default:          return { url: "/discover/movie?sort_by=popularity.desc", media: "movie" };
+      }
+    };
+  
   const { url: baseEndpoint, media } = endpointForType(type);
 
   while (results.length < limit && page <= maxPages) {
@@ -189,6 +189,25 @@ export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBM
       results.push(...data.results.map((r) => ({ ...r, media_type: r.media_type ?? media })));
     }
 
+    page++;
+  }
+
+  return results.slice(0, limit);
+}
+
+// --- SERIES BY GENRE ---
+export async function fetchSeriesByGenre(genreId: number, limit = 40): Promise<TMDBMovie[]> {
+  const results: TMDBMovie[] = [];
+  let page = 1;
+
+  while (results.length < limit && page <= 5) {
+    const res = await fetch(
+      `${BASE}/discover/tv?with_genres=${genreId}&language=en-US&page=${page}`,
+      { headers: getHeaders() }
+    );
+    if (!res.ok) throw new Error(`fetchSeriesByGenre: ${res.status}`);
+    const data: { results: TMDBMovie[] } = await res.json();
+    results.push(...(data.results ?? []));
     page++;
   }
 

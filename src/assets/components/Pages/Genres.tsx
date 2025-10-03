@@ -1,20 +1,26 @@
 import { useEffect, useState } from "react";
 import type { Genre } from "../../../lib/tmdb";
-import { fetchGenres, type TMDBMovie, fetchMoviesByGenre } from "../../../lib/tmdb";
-import {  useSearchParams } from "react-router-dom";
+import {
+  fetchGenres,
+  fetchMoviesByGenre,
+  fetchSeriesByGenre,
+  type TMDBMovie,
+} from "../../../lib/tmdb";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import MovieCard from "../Home/MovieCard";
 import type { Movie } from "../../../hooks/useFetchMovies";
 
-// Define the type for movies returned by fetchMoviesByGenre
 interface GenreMovie {
   id: number;
   title: string;
   poster_path: string;
   backdrop_path?: string;
   release_date?: string;
+  first_air_date?: string;
   vote_average?: number;
+  media_type: "movie" | "tv";
 }
 
 const Genres: React.FC = () => {
@@ -23,16 +29,12 @@ const Genres: React.FC = () => {
   const [movies, setMovies] = useState<GenreMovie[]>([]);
   const [searchParams] = useSearchParams();
 
-  // Get genre name from query param (?g=Action)
   const genreQuery = searchParams.get("g");
 
-  // Load genres
   useEffect(() => {
     fetchGenres()
       .then((allGenres) => {
         setGenres(allGenres);
-
-        // If URL has ?g=xxx, auto-select it
         if (genreQuery) {
           const match = allGenres.find(
             (g) => g.name.toLowerCase() === genreQuery.toLowerCase()
@@ -48,17 +50,23 @@ const Genres: React.FC = () => {
   const handleSelect = async (genre: Genre) => {
     setSelected(genre);
     try {
-      const data: TMDBMovie[] = await fetchMoviesByGenre(genre.id, 30);
-  
-      const mapped: GenreMovie[] = data.map((m) => ({
+      // ✅ Fetch both movies & TV
+      const [moviesData, tvData] = await Promise.all([
+        fetchMoviesByGenre(genre.id, 40),
+        fetchSeriesByGenre(genre.id, 40),
+      ]);
+
+      const mapped: GenreMovie[] = [...moviesData, ...tvData].map((m: TMDBMovie) => ({
         id: m.id,
         title: m.title || m.name || "Untitled",
         poster_path: m.poster_path ?? "",
         backdrop_path: m.backdrop_path,
         release_date: m.release_date,
+        first_air_date: m.first_air_date,
         vote_average: m.vote_average,
+        media_type: m.media_type ?? (m.title ? "movie" : "tv"),
       }));
-  
+
       setMovies(mapped);
     } catch (err: unknown) {
       console.error(
@@ -67,23 +75,31 @@ const Genres: React.FC = () => {
       );
     }
   };
-  
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen">
-      <Navbar />
+    <div className="bg-gray-900 text-white min-h-screen flex flex-col">
+      {/* Navbar */}
+      <div className="px-4 sm:px-6 lg:px-12 xl:px-14">
+        <Navbar />
+      </div>
 
-      <main className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Browse by Genre</h1>
+      {/* Main content */}
+      <main className="flex-1 px-4 sm:px-6 lg:px-12 xl:px-20 py-6">
+        {/* Heading */}
+        <h1 className="text-lg sm:text-2xl md:text-3xl font-bold mb-6 text-center sm:text-left">
+          🎬 Browse by Genre
+        </h1>
 
         {/* Genres List */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-10">
+        <div className="flex flex-wrap gap-2 mb-10 justify-center sm:justify-start">
           {genres.map((g) => (
             <span
               key={g.id}
-              className={`cursor-pointer ${
-                selected?.id === g.id ? "text-red-500" : "text-gray-300"
-              } hover:text-red-400 hover:underline text-lg transition`}
+              className={`cursor-pointer px-3 py-1 rounded-full text-sm sm:text-base transition ${
+                selected?.id === g.id
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-red-400"
+              }`}
               onClick={() => handleSelect(g)}
             >
               {g.name}
@@ -91,19 +107,18 @@ const Genres: React.FC = () => {
           ))}
         </div>
 
-        {/* Movies */}
+        {/* Movies Grid */}
         {selected && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-6">
               Best of {selected.name}
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {movies.map((m) => {
-                // Map GenreMovie -> Movie type
                 const movieLike: Movie = {
                   id: m.id,
                   title: m.title,
-                  year: m.release_date?.slice(0, 4) || "N/A",
+                  year: m.release_date?.slice(0, 4) || m.first_air_date?.slice(0, 4) || "N/A",
                   genre: selected.name,
                   rating: (m.vote_average ?? 0).toFixed(1),
                   backdrop: m.poster_path
@@ -111,19 +126,21 @@ const Genres: React.FC = () => {
                     : m.backdrop_path
                     ? `https://image.tmdb.org/t/p/w300${m.backdrop_path}`
                     : "https://via.placeholder.com/300x450?text=No+Image",
-                  media_type: "movie", 
+                  media_type: m.media_type,
                 };
 
-                return <MovieCard key={m.id} movie={movieLike} />;
+                return <MovieCard key={`${m.media_type}-${m.id}`} movie={movieLike} />;
               })}
             </div>
           </div>
         )}
       </main>
 
+      {/* Footer */}
       <Footer />
     </div>
   );
 };
 
 export default Genres;
+

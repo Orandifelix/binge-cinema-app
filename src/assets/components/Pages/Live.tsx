@@ -161,17 +161,22 @@ const Live = () => {
     }).catch((err) => console.error("Failed to save watch progress:", err));
   }, [id, user, title, posterPath]);
 
-  // ✅ Build embed URL
+  // Get secrets from Vite env
+  const MOVIE_BASE_URL = import.meta.env.VITE_LIVE_MOVIE_URL as string;
+  const TV_BASE_URL = import.meta.env.VITE_LIVE_TV_URL as string;
+  
+  // ✅ Build embed URL securely
   let embedUrl = "";
   if (isMovie) {
-    embedUrl = `https://vidsrc.xyz/embed/movie/${id}?autoplay=1`;
+    embedUrl = `${MOVIE_BASE_URL}${id}?autoplay=1`;
   } else if (isTv) {
     if (season && episode) {
-      embedUrl = `https://vidsrc.xyz/embed/tv/${id}/${season}-${episode}?autoplay=1&autonext=1`;
+      embedUrl = `${TV_BASE_URL}${id}/${season}-${episode}?autoplay=1&autonext=1`;
     } else {
-      embedUrl = `https://vidsrc.xyz/embed/tv/${id}?autoplay=1`;
+      embedUrl = `${TV_BASE_URL}${id}?autoplay=1`;
     }
   }
+  
 
   // Paginate episodes
   const paginatedEpisodes = episodes.slice(
