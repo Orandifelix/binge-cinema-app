@@ -7,7 +7,6 @@ const getHeaders = () => ({
 });
 
 
-
 // --- TYPES ---
 export type Genre = { id: number; name: string };
 
@@ -67,7 +66,6 @@ export async function searchMulti(query: string): Promise<TMDBMovie[]> {
     (r) => r.media_type === "movie" || r.media_type === "tv"
   );
 }
-
 
 
 // --- GENRES ---
@@ -134,6 +132,7 @@ export async function fetchSeasonDetails(seriesId: number, seasonNumber: number)
   return res.json();
 }
 
+
 // ✅ Only episodes array
 export async function fetchSeasonEpisodes(seriesId: number, seasonNumber: number): Promise<TMDBEpisode[]> {
   const season = await fetchSeasonDetails(seriesId, seasonNumber);
@@ -154,6 +153,7 @@ export async function fetchSeriesTrailer(id: number): Promise<string | null> {
   const trailer = data.results.find((v) => v.type === "Trailer" && v.site === "YouTube");
   return trailer ? `https://www.youtube.com/embed/${trailer.key}` : null;
 }
+
 
 // --- GENERIC TYPE FETCH ---
 export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBMovie[]> {
@@ -194,6 +194,7 @@ export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBM
 
   return results.slice(0, limit);
 }
+
 
 // --- SERIES BY GENRE ---
 export async function fetchSeriesByGenre(genreId: number, limit = 40): Promise<TMDBMovie[]> {
