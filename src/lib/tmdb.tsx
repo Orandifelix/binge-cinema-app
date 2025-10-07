@@ -21,7 +21,7 @@ export interface TMDBMovie {
   vote_average?: number;
   runtime?: number;
   genres?: Genre[];
-  media_type?: "movie" | "tv";
+  media_type?: "movie" | "tv" | "person";
   [key: string]: unknown;
 }
 
@@ -56,18 +56,61 @@ const isModern = (date?: string) => {
   return year >= 1990;
 };
 
-// --- SEARCH (no filter → timeless) ---
+// --- SEARCH (includes character/person search) ---
 export async function searchMulti(query: string): Promise<TMDBMovie[]> {
+  const timeless = query.toLowerCase().includes("timeless");
+
   const res = await fetch(
-    `${BASE}/search/multi?query=${encodeURIComponent(query)}&language=en-US`,
+    `${BASE}/search/multi?query=${encodeURIComponent(query)}&language=en-US&include_adult=false`,
     { headers: getHeaders() }
   );
+
   if (!res.ok) throw new Error(`searchMulti: ${res.status}`);
   const data: { results: TMDBMovie[] } = await res.json();
 
-  return data.results.filter(
+  // Step 1: movies/tv shows directly matching
+  const mediaResults = data.results.filter(
     (r) => r.media_type === "movie" || r.media_type === "tv"
   );
+
+  // Step 2: people results (actors / characters)
+  const personResults = data.results.filter((r) => r.media_type === "person");
+
+  // Step 3: fetch credits for people (character-based results)
+  const relatedResults: TMDBMovie[] = [];
+  const seenPeople = new Set<number>();
+
+  for (const person of personResults) {
+    if (!person.id || seenPeople.has(person.id)) continue;
+    seenPeople.add(person.id);
+
+    try {
+      const creditRes = await fetch(
+        `${BASE}/person/${person.id}/combined_credits?language=en-US`,
+        { headers: getHeaders() }
+      );
+      if (!creditRes.ok) continue;
+
+      const creditsData: { cast?: TMDBMovie[] } = await creditRes.json();
+      const validCredits = (creditsData.cast ?? []).filter(
+        (r) => r.media_type === "movie" || r.media_type === "tv"
+      );
+
+      relatedResults.push(...validCredits);
+    } catch (err) {
+      console.warn("Error fetching credits for person:", person.id, err);
+    }
+  }
+
+  // Step 4: merge all and filter by year if not timeless
+  const allResults = [...mediaResults, ...relatedResults];
+  const unique = Array.from(new Map(allResults.map((m) => [m.id, m])).values());
+
+  return timeless
+    ? unique
+    : unique.filter((m) =>
+        isModern(m.release_date || m.first_air_date)
+      );
 }
 
 // --- GENRES ---
