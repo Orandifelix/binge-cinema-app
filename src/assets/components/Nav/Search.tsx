@@ -1,16 +1,24 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Search = () => {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // ✅ Keep query synced with current URL if user reloads or navigates back
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get("q") || "";
+    setQuery(q);
+  }, [location.search]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       if (query.trim()) {
-        navigate(`/search?q=${encodeURIComponent(query)}`);
+        navigate(`/search?q=${encodeURIComponent(query)}`, { replace: true });
       }
-    }, 500);
+    }, 400); // small debounce
 
     return () => clearTimeout(handler);
   }, [query, navigate]);

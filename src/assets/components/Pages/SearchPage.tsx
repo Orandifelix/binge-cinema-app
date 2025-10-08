@@ -2,8 +2,7 @@ import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Footer from "../Footer";
 import Navbar from "../Navbar";
-import { searchMulti, type TMDBMovie } from "../../../lib/tmdb";   
-
+import { searchMulti, type TMDBMovie } from "../../../lib/tmdb";
 import type { Movie } from "../../../hooks/useFetchMovies";
 import MovieCard from "../Home/MovieCard";
 
@@ -14,24 +13,29 @@ const SearchPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
+    if (!query.trim()) return;
 
+    let active = true;
     const fetchResults = async () => {
       setLoading(true);
       try {
         const data = await searchMulti(query);
-        setResults(data);
+        if (active) {
+          setResults(data);
+        }
       } catch (err) {
         console.error("Error fetching search results:", err);
-        setResults([]);
+        if (active) setResults([]);
+      } finally {
+        if (active) setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchResults();
+
+    return () => {
+      active = false; // ✅ Prevent state updates if query changes mid-fetch
+    };
   }, [query]);
 
   return (
@@ -47,31 +51,45 @@ const SearchPage: React.FC = () => {
               : "Type a movie or show name in the search bar"}
           </h1>
 
-          {loading ? (
+          {loading && results.length === 0 ? (
             <p className="text-gray-400">Loading...</p>
           ) : results.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-              {results.map((item) => {
-                const movieLike: Movie = {
-                  id: item.id,
-                  title: item.title || item.name || "Unknown",
-                  year:
-                    item.release_date?.slice(0, 4) ||
-                    item.first_air_date?.slice(0, 4) ||
-                    "N/A",
-                  genre: "N/A", 
-                  rating: (item.vote_average ?? 0).toFixed(1),
-                  backdrop: item.poster_path
-                    ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
-                    : "https://via.placeholder.com/300x450?text=No+Image",
-                  media_type: item.media_type || (item.title ? "movie" : "tv"),
-                };
-
-                return <MovieCard key={`${item.media_type}-${item.id}`} movie={movieLike} />;
-              })}
-            </div>
+            <>
+              {loading && (
+                <p className="text-gray-400 mb-2 text-sm">
+                  Updating results...
+                </p>
+              )}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                {results.map((item) => {
+                  const movieLike: Movie = {
+                    id: item.id,
+                    title: item.title || item.name || "Unknown",
+                    year:
+                      item.release_date?.slice(0, 4) ||
+                      item.first_air_date?.slice(0, 4) ||
+                      "N/A",
+                    genre: item.media_type === "tv" ? "TV" : "Movie",
+                    rating: (item.vote_average ?? 0).toFixed(1),
+                    backdrop: item.poster_path
+                      ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
+                      : "https://via.placeholder.com/300x450?text=No+Image",
+                    media_type:
+                      item.media_type === "movie" || item.media_type === "tv"
+                        ? item.media_type
+                        : "movie",
+                  };
+                  return (
+                    <MovieCard
+                      key={`${item.media_type}-${item.id}`}
+                      movie={movieLike}
+                    />
+                  );
+                })}
+              </div>
+            </>
           ) : (
-            <p className="text-gray-400">No results found.</p>
+            query && <p className="text-gray-400">No results found.</p>
           )}
         </main>
 
