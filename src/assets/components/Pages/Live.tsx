@@ -234,10 +234,18 @@ const Live = () => {
         {user && <ContinueWatching />}
 
         {/* Similar Suggestions */}
-        <section className="px-6 lg:px-12 py-10">
-          <h2 className="text-2xl font-bold mb-4 text-white">You May Also Like</h2>
+      {/* Related movies */}
+      <div className="flex items-center mb-8 px-4 sm:px-6 md:px-12 lg:px-18">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mr-4">
+          You may also like
+        </h2>
+        <div className="flex-1 h-[2px] bg-gradient-to-r from-red-600 to-transparent"></div>
+      </div>
+
+      {/* ✅ Always pass correct type */}
+      <div className="px-4 sm:px-6 md:px-12 lg:px-18">
           <SimilarSuggestions type={isTv ? "tv" : "movie"} />
-        </section>
+        </div>
       </main>
 
       <Footer />

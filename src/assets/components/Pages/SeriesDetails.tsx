@@ -1,3 +1,4 @@
+ 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -5,17 +6,15 @@ import Navbar from "../Navbar";
 import Footer from "../Footer";
 import { Play, Clock, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import PlayModal from "../../components/Landing/Play_modal";
-import type { Movie } from "../../../hooks/useFetchMovies";
-
 import {
   fetchSeriesDetails,
   fetchSeriesTrailer,
-  fetchSimilarSeries,
   fetchSeasonEpisodes,
 } from "../../../lib/tmdb";
-import MovieCard from "../Home/MovieCard";
 
-// Types
+import SimilarSuggestions from "../similar/SimilarSuggestions";
+
+// ---------------- TYPES ----------------
 interface GenreItem {
   id: number;
   name: string;
@@ -34,13 +33,6 @@ interface SeriesDetailsType {
   seasons: { season_number: number; name: string }[];
 }
 
-interface SimilarSeriesType {
-  id: number;
-  name: string;
-  poster_path: string;
-  first_air_date: string;
-  vote_average?: number; 
-}
 
 
 interface Episode {
@@ -50,13 +42,13 @@ interface Episode {
   episode_number: number;
 }
 
+// ---------------- COMPONENT ----------------
 const SeriesDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const seriesId = Number(id);
   const navigate = useNavigate();
 
   const [series, setSeries] = useState<SeriesDetailsType | null>(null);
-  const [similar, setSimilar] = useState<SimilarSeriesType[]>([]);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [loading, setLoading] = useState(true);
@@ -68,33 +60,22 @@ const SeriesDetails: React.FC = () => {
   // Pagination
   const [page, setPage] = useState(0);
   const pageSize = 6;
-  const totalPages = Math.ceil(episodes.length / pageSize);
   const paginatedEpisodes = episodes.slice(page * pageSize, page * pageSize + pageSize);
+  const totalPages = Math.ceil(episodes.length / pageSize);
 
-  // Fetch series details & similar
+  // Fetch series details
   useEffect(() => {
     if (!seriesId) return;
     setLoading(true);
 
-    Promise.all([fetchSeriesDetails(seriesId), fetchSimilarSeries(seriesId)])
-      .then(([details, related]) => {
+    fetchSeriesDetails(seriesId)
+      .then((details) => {
         setSeries(details);
-
-        // Map to ensure "name" is always present
-        const mappedSimilar: SimilarSeriesType[] = related.map((item: any) => ({
-          id: item.id,
-          name: item.name || item.title || "Unknown",
-          poster_path: item.poster_path || "",
-          first_air_date: item.first_air_date || "N/A",
-          vote_average: item.vote_average ?? 0,
-        }));
-        setSimilar(mappedSimilar);        
-
         if (details.seasons?.length) {
           setSelectedSeason(details.seasons[0].season_number);
         }
       })
-      .catch((err) => console.error(err))
+      .catch((err) => console.error("Failed to fetch series:", err))
       .finally(() => setLoading(false));
   }, [seriesId]);
 
@@ -205,7 +186,7 @@ const SeriesDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Episodes grid with navigation */}
+      {/* Episodes grid */}
       <div className="relative px-12 py-8">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {paginatedEpisodes.map((ep) => (
@@ -225,13 +206,11 @@ const SeriesDetails: React.FC = () => {
                 alt={ep.name}
                 className="w-full aspect-video object-cover group-hover:opacity-80 transition"
               />
-
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 bg-black/40 rounded-full flex items-center justify-center border border-white/40">
                   <Play className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
               </div>
-
               <div className="p-2 text-xs sm:text-sm">
                 <p className="font-semibold truncate">{ep.name}</p>
                 <p className="text-gray-400">Ep {ep.episode_number}</p>
@@ -240,7 +219,7 @@ const SeriesDetails: React.FC = () => {
           ))}
         </div>
 
-        {/* Pagination arrows */}
+        {/* Pagination controls */}
         {page > 0 && (
           <button
             onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
@@ -259,37 +238,22 @@ const SeriesDetails: React.FC = () => {
         )}
       </div>
 
-      {/* Related Series */}
-        <div className="px-4 sm:px-6 md:px-12 py-12">
-            <div className="flex items-center mb-8">
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mr-4">
-              You may also like
-                </h2>
-                <div className="flex-1 h-[2px] bg-gradient-to-r from-red-600 to-transparent"></div>
-           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {similar.map((rel) => {
-              const movieLike: Movie = {
-                id: rel.id,
-                title: rel.name,
-                year: rel.first_air_date ? rel.first_air_date.slice(0, 4) : "N/A",
-                genre: "TV", // optional: replace with actual genre if you fetch genres
-                rating: (rel.vote_average ?? 0).toFixed(1), // keep string shape your Movie type expects
-                backdrop: rel.poster_path
-                  ? `https://image.tmdb.org/t/p/w300${rel.poster_path}`
-                  : "",
-                media_type: "tv",
-              };
-
-              return <MovieCard key={movieLike.id} movie={movieLike} />;
-            })}
-          </div>
+      {/* ✅ Advanced Similar Suggestions */}
+      <div className="px-4 sm:px-6 md:px-12 py-12">
+        <div className="flex items-center mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mr-4">
+            You May Also Like
+          </h2>
+          <div className="flex-1 h-[2px] bg-gradient-to-r from-red-600 to-transparent"></div>
         </div>
+
+        {/* Component dynamically fetches top cast, genre & others */}
+        <SimilarSuggestions type="tv" />
+      </div>
 
       <Footer />
 
-      {/* Trailer modal */}
+      {/* Trailer Modal */}
       <PlayModal
         trailerOpen={trailerOpen}
         trailerUrl={trailerUrl}

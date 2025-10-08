@@ -5,7 +5,6 @@ import Footer from "../Footer";
 import { Play, Clock, Star } from "lucide-react";
 import {
   fetchMovieDetails,
-  fetchSimilarMovies,
   fetchMovieTrailer,
 } from "../../../lib/tmdb";
 import PlayModal from "../../components/Landing/Play_modal";
@@ -28,21 +27,12 @@ interface MovieDetailsType {
   genres: GenreItem[];
 }
 
-interface SimilarMovieType {
-  id: number;
-  title: string;
-  poster_path: string;
-  release_date: string;
-  vote_average?: number;
-}
-
 const MovieDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const movieId = Number(id);
   const navigate = useNavigate();
 
   const [movie, setMovie] = useState<MovieDetailsType | null>(null);
-  const [similar, setSimilar] = useState<SimilarMovieType[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [trailerOpen, setTrailerOpen] = useState(false);
@@ -52,8 +42,8 @@ const MovieDetails: React.FC = () => {
     if (!movieId) return;
     setLoading(true);
 
-    Promise.all([fetchMovieDetails(movieId), fetchSimilarMovies(movieId)])
-      .then(([details, related]) => {
+    fetchMovieDetails(movieId)
+      .then((details) => {
         const mappedDetails: MovieDetailsType = {
           id: details.id,
           title: details.title || details.name || "Unknown",
@@ -66,15 +56,6 @@ const MovieDetails: React.FC = () => {
           genres: details.genres || [],
         };
         setMovie(mappedDetails);
-
-        const mappedRelated: SimilarMovieType[] = related.map((rel) => ({
-          id: rel.id,
-          title: rel.title || rel.name || "Unknown",
-          poster_path: rel.poster_path || "",
-          release_date: rel.release_date || rel.first_air_date || "N/A",
-          vote_average: rel.vote_average ?? 0,
-        }));
-        setSimilar(mappedRelated);
       })
       .catch((err: unknown) => {
         if (err instanceof Error) console.error("Error:", err.message);
@@ -196,15 +177,12 @@ const MovieDetails: React.FC = () => {
         <div className="flex-1 h-[2px] bg-gradient-to-r from-red-600 to-transparent"></div>
       </div>
 
-      {/* ✅ Always pass correct type */}
       <div className="px-4 sm:px-6 md:px-12 lg:px-18">
-          <SimilarSuggestions type="movie" />
+        <SimilarSuggestions type="movie" />
       </div>
-    
 
       <Footer />
 
-      {/* Trailer modal */}
       <PlayModal
         trailerOpen={trailerOpen}
         trailerUrl={trailerUrl}
