@@ -101,9 +101,6 @@ const SimilarSuggestions: React.FC<Props> = ({ type }) => {
       {/* 🎭 From Main Cast */}
       {fromCast.length > 0 && (
         <section>
-          {/* <h2 className="text-xl md:text-2xl font-bold mb-4 text-white">
-            Top Rated from Main Cast
-          </h2> */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {fromCast.map((movie) => (
               <MovieCard key={movie.id} movie={mapToMovieCardData(movie)} />
@@ -115,9 +112,6 @@ const SimilarSuggestions: React.FC<Props> = ({ type }) => {
       {/* 🎬 Same Genre */}
       {fromGenre.length > 0 && (
         <section>
-          {/* <h2 className="text-xl md:text-2xl font-bold mb-4 text-white">
-            Top Rated in Same Genre
-          </h2> */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {fromGenre.map((movie) => (
               <MovieCard key={movie.id} movie={mapToMovieCardData(movie)} />
@@ -129,9 +123,6 @@ const SimilarSuggestions: React.FC<Props> = ({ type }) => {
       {/* 🌍 Others */}
       {others.length > 0 && (
         <section>
-          {/* <h2 className="text-xl md:text-2xl font-bold mb-4 text-white">
-            You May Also Like
-          </h2> */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {others.map((movie) => (
               <MovieCard key={movie.id} movie={mapToMovieCardData(movie)} />
