@@ -1,43 +1,24 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
-import Footer from "../Footer";
+import { useEffect, useState, useMemo } from "react";
+import { onAuthStateChanged, type User } from "firebase/auth";
+import { Play, ChevronLeft, ChevronRight } from "lucide-react";
+
 import Navbar from "../Navbar";
+import Footer from "../Footer";
+import ContinueWatching from "../ContinueWatching";
+import SimilarSuggestions from "../similar/SimilarSuggestions";
+
 import {
-  fetchSimilarMovies,
-  fetchSimilarSeries,
   fetchMovieDetails,
   fetchSeriesDetails,
   fetchSeasonEpisodes,
 } from "../../../lib/tmdb";
-import { Play, ChevronLeft, ChevronRight } from "lucide-react";
-import { onAuthStateChanged, type User } from "firebase/auth";
+
 import { auth } from "../../../firebase";
-
-// Firestore service
 import { saveLastWatched } from "../../../services/watchedService";
-import ContinueWatching from "../ContinueWatching";
-
- 
-import type { Movie } from "../../../hooks/useFetchMovies";
-import MovieCard from "../Home/MovieCard";
 
 
-// Types
-interface SimilarMovieType {
-  id: number;
-  title: string;
-  poster_path: string;
-  release_date: string;
-  vote_average?: number;  
-}
-
-
-interface SeriesDetailsType {
-  id: number;
-  name: string;
-  seasons: { season_number: number; name: string }[];
-}
-
+// 🔹 Types
 interface Episode {
   id: number;
   name: string;
@@ -45,155 +26,114 @@ interface Episode {
   episode_number: number;
 }
 
+interface SeriesDetails {
+  id: number;
+  name: string;
+  seasons: { season_number: number; name: string }[];
+}
+
+
+const EPISODES_PER_PAGE = 6;
+
 const Live = () => {
   const { id, season, episode } = useParams<{
     id: string;
     season?: string;
     episode?: string;
   }>();
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [similar, setSimilar] = useState<SimilarMovieType[]>([]);
-  const [title, setTitle] = useState<string>("");
-  const [posterPath, setPosterPath] = useState<string>("");
   const [user, setUser] = useState<User | null>(null);
-
-  // TV-specific state
-  const [series, setSeries] = useState<SeriesDetailsType | null>(null);
+  const [title, setTitle] = useState("");
+  const [posterPath, setPosterPath] = useState("");
+  const [series, setSeries] = useState<SeriesDetails | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<number>(
     season ? Number(season) : 1
   );
-
-  // Episode pagination
   const [episodePage, setEpisodePage] = useState(0);
-  const EPISODES_PER_PAGE = 6;
 
-  // ✅ Auth listener
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsub();
-  }, []);
-
-  // ✅ Detect movie or TV
   const isTv = location.pathname.startsWith("/live/tv");
   const isMovie = !isTv;
 
-  // ✅ Fetch details + similar
+  // ✅ Auth
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, setUser);
+    return unsub;
+  }, []);
+
+  // ✅ Fetch details (movie or series)
   useEffect(() => {
     if (!id) return;
 
-    if (isMovie) {
-      fetchMovieDetails(Number(id))
-        .then((movie) => {
+    const fetchDetails = async () => {
+      try {
+        if (isMovie) {
+          const movie = await fetchMovieDetails(Number(id));
           setTitle(movie.title || movie.name || "Untitled");
           setPosterPath(movie.poster_path || "");
-        })
-        .catch((err) => console.error(err));
-
-      fetchSimilarMovies(Number(id))
-        .then((movies) => {
-          const cleaned: SimilarMovieType[] = movies
-            .filter((m) => m.poster_path)
-            .map((m) => ({
-              id: m.id,
-              title: m.title || m.name || "Untitled",  
-              poster_path: m.poster_path!,
-              release_date: m.release_date || m.first_air_date || "Unknown",
-              vote_average: m.vote_average ?? 0,
-            }));
-          setSimilar(cleaned);
-        })
-        .catch((err) => console.error(err));
-    }
-
-    if (isTv) {
-      fetchSeriesDetails(Number(id))
-        .then((details) => {
+        } else {
+          const details = await fetchSeriesDetails(Number(id));
           setSeries(details);
-          if (season) {
-            setSelectedSeason(Number(season));
-          } else if (details.seasons?.length) {
-            setSelectedSeason(details.seasons[0].season_number);
-          }
+          setSelectedSeason(season ? Number(season) : details.seasons?.[0]?.season_number ?? 1);
           setTitle(details.name || "Untitled");
-        })
-        .catch((err) => console.error(err));
+        }
+      } catch (err) {
+        console.error("Error fetching details:", err);
+      }
+    };
 
-      fetchSimilarSeries(Number(id))
-        .then((shows) => {
-          const cleaned: SimilarMovieType[] = shows
-            .filter((s) => s.poster_path)
-            .map((s) => ({
-              id: s.id,
-              title: s.title || s.name || "Untitled",  
-              poster_path: s.poster_path!,
-              release_date: s.release_date || s.first_air_date || "Unknown",
-              vote_average: s.vote_average ?? 0,
-            }));
-          setSimilar(cleaned);
-        })
-        .catch((err) => console.error(err));
-    }
+    fetchDetails();
   }, [id, isMovie, isTv, season]);
 
-  // ✅ Fetch episodes when season changes
+  // ✅ Fetch episodes (TV only)
   useEffect(() => {
     if (!isTv || !id || !selectedSeason) return;
-    fetchSeasonEpisodes(Number(id), selectedSeason).then((eps) =>
-      setEpisodes(eps || [])
-    );
-    setEpisodePage(0); // reset page when season changes
+    fetchSeasonEpisodes(Number(id), selectedSeason)
+      .then((eps) => setEpisodes(eps || []))
+      .catch((err) => console.error("Error fetching episodes:", err));
+    setEpisodePage(0);
   }, [id, isTv, selectedSeason]);
 
   // ✅ Save last watched
   useEffect(() => {
-    if (!id || !user) return;
-    if (!title || !posterPath) return;
-
-    saveLastWatched({
-      movieId: id,
-      title,
-      poster_path: posterPath,
-    }).catch((err) => console.error("Failed to save watch progress:", err));
+    if (id && user && title && posterPath) {
+      saveLastWatched({ movieId: id, title, poster_path: posterPath }).catch((err) =>
+        console.error("Failed to save watch progress:", err)
+      );
+    }
   }, [id, user, title, posterPath]);
 
-  // Get secrets from Vite env
-  const MOVIE_BASE_URL = import.meta.env.VITE_LIVE_MOVIE_URL as string;
-  const TV_BASE_URL = import.meta.env.VITE_LIVE_TV_URL as string;
-  
-  // ✅ Build embed URL securely
-  let embedUrl = "";
-  if (isMovie) {
-    embedUrl = `${MOVIE_BASE_URL}${id}?autoplay=1`;
-  } else if (isTv) {
-    if (season && episode) {
-      embedUrl = `${TV_BASE_URL}${id}/${season}-${episode}?autoplay=1&autonext=1`;
-    } else {
-      embedUrl = `${TV_BASE_URL}${id}?autoplay=1`;
-    }
-  }
-  
+  // ✅ Embed URL (secure)
+  const embedUrl = useMemo(() => {
+    const MOVIE_BASE_URL = import.meta.env.VITE_LIVE_MOVIE_URL as string;
+    const TV_BASE_URL = import.meta.env.VITE_LIVE_TV_URL as string;
 
-  // Paginate episodes
-  const paginatedEpisodes = episodes.slice(
-    episodePage * EPISODES_PER_PAGE,
-    (episodePage + 1) * EPISODES_PER_PAGE
+    if (isMovie) return `${MOVIE_BASE_URL}${id}?autoplay=1`;
+    if (season && episode)
+      return `${TV_BASE_URL}${id}/${season}-${episode}?autoplay=1&autonext=1`;
+    return `${TV_BASE_URL}${id}?autoplay=1`;
+  }, [id, isMovie, season, episode]);
+
+  // ✅ Paginated episodes
+  const paginatedEpisodes = useMemo(
+    () =>
+      episodes.slice(
+        episodePage * EPISODES_PER_PAGE,
+        (episodePage + 1) * EPISODES_PER_PAGE
+      ),
+    [episodes, episodePage]
   );
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100 font-sans">
-      {/* Navbar */}
       <div className="px-4 sm:px-6 lg:px-12 xl:px-20">
         <Navbar />
       </div>
 
-      {/* Main content */}
       <main className="flex-1 overflow-y-auto">
-        {/* 🎬 Title */}
+        {/* Title */}
         <div className="bg-gray-950 py-6 text-center">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-100">
             🎬 You are watching <span className="text-red-500">{title}</span>
@@ -212,10 +152,9 @@ const Live = () => {
           </div>
         </div>
 
-        {/* ✅ Season & Episodes (TV only) */}
+        {/* TV Episodes */}
         {isTv && series && (
-          <div className="px-4 sm:px-6 lg:px-12 xl:px-20 py-10">
-            {/* Season selector */}
+          <section className="px-6 lg:px-12 py-10">
             <div className="mb-6 flex justify-between items-center">
               <h2 className="text-lg sm:text-xl font-semibold">Episodes</h2>
               <select
@@ -223,15 +162,15 @@ const Live = () => {
                 onChange={(e) => setSelectedSeason(Number(e.target.value))}
                 className="bg-gray-800 text-white rounded px-3 py-1 text-sm"
               >
-                {series.seasons.map((season) => (
-                  <option key={season.season_number} value={season.season_number}>
-                    {season.name}
+                {series.seasons.map((s) => (
+                  <option key={s.season_number} value={s.season_number}>
+                    {s.name}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Episodes grid with navigation */}
+            {/* Episodes grid */}
             <div className="relative">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {paginatedEpisodes.map((ep) => (
@@ -244,7 +183,6 @@ const Live = () => {
                       )
                     }
                   >
-                    {/* Thumbnail */}
                     <img
                       src={
                         ep.still_path
@@ -254,15 +192,11 @@ const Live = () => {
                       alt={ep.name}
                       className="w-full aspect-video object-cover group-hover:opacity-80 transition"
                     />
-
-                    {/* Overlay Play Button */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                       <div className="w-12 h-12 sm:w-14 sm:h-14 bg-black/40 rounded-full flex items-center justify-center border border-white/40">
-                        <Play className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                        <Play className="w-6 h-6 text-white" />
                       </div>
                     </div>
-
-                    {/* Episode details */}
                     <div className="p-2 text-xs sm:text-sm">
                       <p className="font-semibold truncate">{ep.name}</p>
                       <p className="text-gray-400">Ep {ep.episode_number}</p>
@@ -271,63 +205,39 @@ const Live = () => {
                 ))}
               </div>
 
-              {/* Left Arrow */}
+              {/* Episode navigation */}
               {episodePage > 0 && (
                 <button
-                  onClick={() => setEpisodePage((prev) => Math.max(prev - 1, 0))}
+                  onClick={() => setEpisodePage((p) => Math.max(p - 1, 0))}
                   className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 bg-black/40 hover:bg-black p-2 sm:p-3 rounded-full"
                 >
-                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <ChevronLeft className="w-6 h-6 text-white" />
                 </button>
               )}
-
-              {/* Right Arrow */}
               {(episodePage + 1) * EPISODES_PER_PAGE < episodes.length && (
                 <button
                   onClick={() =>
-                    setEpisodePage((prev) =>
-                      (prev + 1) * EPISODES_PER_PAGE < episodes.length
-                        ? prev + 1
-                        : prev
+                    setEpisodePage((p) =>
+                      (p + 1) * EPISODES_PER_PAGE < episodes.length ? p + 1 : p
                     )
                   }
                   className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 bg-black/40 hover:bg-black p-2 sm:p-3 rounded-full"
                 >
-                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <ChevronRight className="w-6 h-6 text-white" />
                 </button>
               )}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* ✅ Continue Watching Section */}
+        {/* Continue Watching */}
         {user && <ContinueWatching />}
-        <div className="flex items-center mb-8 px-4 sm:px-6 md:px-12 lg:px-18">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mr-4">
-            You may also like
-            </h2>
-            <div className="flex-1 h-[2px] bg-gradient-to-r from-red-600 to-transparent"></div>
-         </div>
 
-        {/* Similar Movies/Shows */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 lg:px-18">
-        {similar.map((rel) => {
-          const movieLike: Movie = {
-            id: rel.id,
-            title: rel.title,
-            year: rel.release_date ? rel.release_date.slice(0, 4) : "N/A",
-            genre: isMovie ? "Movie" : "TV", // quick label
-            rating: (rel.vote_average ?? 0).toFixed(1),
-            backdrop: rel.poster_path
-              ? `https://image.tmdb.org/t/p/w300${rel.poster_path}`
-              : "",
-            media_type: isMovie ? "movie" : "tv",
-          };
-
-          return <MovieCard key={movieLike.id} movie={movieLike} />;
-        })}
-        </div>
-
+        {/* Similar Suggestions */}
+        <section className="px-6 lg:px-12 py-10">
+          <h2 className="text-2xl font-bold mb-4 text-white">You May Also Like</h2>
+          <SimilarSuggestions type={isTv ? "tv" : "movie"} />
+        </section>
       </main>
 
       <Footer />

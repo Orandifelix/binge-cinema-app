@@ -278,3 +278,96 @@ export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBM
 
   return results.slice(0, limit);
 }
+
+ 
+// --- ADVANCED SIMILAR (for movies + series) ---
+export async function fetchAdvancedSimilar(
+  id: number,
+  type: "movie" | "tv"
+): Promise<{ fromCast: TMDBMovie[]; fromGenre: TMDBMovie[]; others: TMDBMovie[] }> {
+  // 1️⃣ Get the base details for movie or tv
+  const detailsUrl = `${BASE}/${type}/${id}?language=en-US`;
+  const creditsUrl = `${BASE}/${type}/${id}/credits?language=en-US`;
+
+  const [detailsRes, creditsRes] = await Promise.all([
+    fetch(detailsUrl, { headers: getHeaders() }),
+    fetch(creditsUrl, { headers: getHeaders() }),
+  ]);
+
+  if (!detailsRes.ok || !creditsRes.ok)
+    throw new Error(`fetchAdvancedSimilar: details or credits failed`);
+
+  const details = await detailsRes.json();
+  const credits = await creditsRes.json();
+
+  // Extract main cast + genre IDs
+  const mainCast = (credits.cast ?? []).slice(0, 5);
+  const genreIds = (details.genres ?? []).map((g: { id: number }) => g.id);
+
+  // 2️⃣ Fetch similar movies/series directly
+  const similarRes = await fetch(`${BASE}/${type}/${id}/similar?language=en-US&page=1`, {
+    headers: getHeaders(),
+  });
+  const similarData = await similarRes.json();
+  const similar = (similarData.results ?? [])
+    .filter((m: TMDBMovie) =>
+      isModern(m.release_date || m.first_air_date)
+    )
+    .slice(0, 6);
+
+  // 3️⃣ Fetch top-rated from main cast
+  const fromCast: TMDBMovie[] = [];
+  for (const person of mainCast) {
+    try {
+      const res = await fetch(`${BASE}/person/${person.id}/combined_credits?language=en-US`, {
+        headers: getHeaders(),
+      });
+      if (!res.ok) continue;
+      const data: { cast?: TMDBMovie[] } = await res.json();
+      const topRated = (data.cast ?? [])
+        .filter(
+          (m) =>
+            (m.media_type === "movie" || m.media_type === "tv") &&
+            isModern(m.release_date || m.first_air_date)
+        )
+        .sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0))
+        .slice(0, 3); // top 3 per cast
+      fromCast.push(...topRated);
+    } catch {
+      continue;
+    }
+  }
+
+  // Keep only top 6 unique cast items
+  const uniqueCast = Array.from(new Map(fromCast.map((m) => [m.id, m])).values()).slice(0, 6);
+
+  // 4️⃣ Fetch top-rated from same genre
+  const fromGenre: TMDBMovie[] = [];
+  if (genreIds.length) {
+    try {
+      const genreQuery = genreIds.slice(0, 2).join(",");
+      const url =
+        type === "movie"
+          ? `${BASE}/discover/movie?with_genres=${genreQuery}&sort_by=vote_average.desc&vote_count.gte=100`
+          : `${BASE}/discover/tv?with_genres=${genreQuery}&sort_by=vote_average.desc&vote_count.gte=100`;
+
+      const res = await fetch(`${url}&language=en-US&page=1`, { headers: getHeaders() });
+      if (res.ok) {
+        const data: { results?: TMDBMovie[] } = await res.json();
+        fromGenre.push(
+          ...(data.results ?? [])
+            .filter((m) => isModern(m.release_date || m.first_air_date))
+            .slice(0, 6)
+        );
+      }
+    } catch {
+      // ignore errors
+    }
+  }
+
+  return {
+    fromCast: uniqueCast,
+    fromGenre,
+    others: similar,
+  };
+}
