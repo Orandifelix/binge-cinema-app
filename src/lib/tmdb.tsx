@@ -279,19 +279,20 @@ export async function fetchMoviesByType(type: string, limit = 60): Promise<TMDBM
   return results.slice(0, limit);
 }
 
- 
-// --- ADVANCED SIMILAR (for movies + series) ---
+// --- ADVANCED SIMILAR (for movies + tv) ---
+function normalizeMediaType(item: TMDBMovie, fallback: "movie" | "tv"): "movie" | "tv" {
+  if (item.media_type === "tv" || item.first_air_date) return "tv";
+  if (item.media_type === "movie" || item.release_date) return "movie";
+  return fallback;
+}
+
 export async function fetchAdvancedSimilar(
   id: number,
   type: "movie" | "tv"
 ): Promise<{ fromCast: TMDBMovie[]; fromGenre: TMDBMovie[]; others: TMDBMovie[] }> {
-  // 1️⃣ Get the base details for movie or tv
-  const detailsUrl = `${BASE}/${type}/${id}?language=en-US`;
-  const creditsUrl = `${BASE}/${type}/${id}/credits?language=en-US`;
-
   const [detailsRes, creditsRes] = await Promise.all([
-    fetch(detailsUrl, { headers: getHeaders() }),
-    fetch(creditsUrl, { headers: getHeaders() }),
+    fetch(`${BASE}/${type}/${id}?language=en-US`, { headers: getHeaders() }),
+    fetch(`${BASE}/${type}/${id}/credits?language=en-US`, { headers: getHeaders() }),
   ]);
 
   if (!detailsRes.ok || !creditsRes.ok)
@@ -300,22 +301,23 @@ export async function fetchAdvancedSimilar(
   const details = await detailsRes.json();
   const credits = await creditsRes.json();
 
-  // Extract main cast + genre IDs
   const mainCast = (credits.cast ?? []).slice(0, 5);
   const genreIds = (details.genres ?? []).map((g: { id: number }) => g.id);
 
-  // 2️⃣ Fetch similar movies/series directly
+  // --- Similar results ---
   const similarRes = await fetch(`${BASE}/${type}/${id}/similar?language=en-US&page=1`, {
     headers: getHeaders(),
   });
   const similarData = await similarRes.json();
-  const similar = (similarData.results ?? [])
-    .filter((m: TMDBMovie) =>
-      isModern(m.release_date || m.first_air_date)
-    )
+  const others = (similarData.results ?? [])
+    .filter((m: TMDBMovie) => isModern(m.release_date || m.first_air_date))
+    .map((m: TMDBMovie) => ({
+      ...m,
+      media_type: normalizeMediaType(m, type),
+    }))
     .slice(0, 6);
 
-  // 3️⃣ Fetch top-rated from main cast
+  // --- From Cast ---
   const fromCast: TMDBMovie[] = [];
   for (const person of mainCast) {
     try {
@@ -331,43 +333,37 @@ export async function fetchAdvancedSimilar(
             isModern(m.release_date || m.first_air_date)
         )
         .sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0))
-        .slice(0, 3); // top 3 per cast
+        .slice(0, 3);
       fromCast.push(...topRated);
     } catch {
       continue;
     }
   }
 
-  // Keep only top 6 unique cast items
-  const uniqueCast = Array.from(new Map(fromCast.map((m) => [m.id, m])).values()).slice(0, 6);
+  const uniqueCast = Array.from(new Map(fromCast.map((m) => [m.id, m])).values())
+    .map((m) => ({ ...m, media_type: normalizeMediaType(m, type) }))
+    .slice(0, 6);
 
-  // 4️⃣ Fetch top-rated from same genre
+  // --- From Genre ---
   const fromGenre: TMDBMovie[] = [];
   if (genreIds.length) {
-    try {
-      const genreQuery = genreIds.slice(0, 2).join(",");
-      const url =
-        type === "movie"
-          ? `${BASE}/discover/movie?with_genres=${genreQuery}&sort_by=vote_average.desc&vote_count.gte=100`
-          : `${BASE}/discover/tv?with_genres=${genreQuery}&sort_by=vote_average.desc&vote_count.gte=100`;
+    const genreQuery = genreIds.slice(0, 2).join(",");
+    const discoverUrl =
+      type === "movie"
+        ? `${BASE}/discover/movie?with_genres=${genreQuery}&sort_by=vote_average.desc&vote_count.gte=100`
+        : `${BASE}/discover/tv?with_genres=${genreQuery}&sort_by=vote_average.desc&vote_count.gte=100`;
 
-      const res = await fetch(`${url}&language=en-US&page=1`, { headers: getHeaders() });
-      if (res.ok) {
-        const data: { results?: TMDBMovie[] } = await res.json();
-        fromGenre.push(
-          ...(data.results ?? [])
-            .filter((m) => isModern(m.release_date || m.first_air_date))
-            .slice(0, 6)
-        );
-      }
-    } catch {
-      // ignore errors
+    const res = await fetch(`${discoverUrl}&language=en-US&page=1`, { headers: getHeaders() });
+    if (res.ok) {
+      const data: { results?: TMDBMovie[] } = await res.json();
+      fromGenre.push(
+        ...(data.results ?? [])
+          .filter((m) => isModern(m.release_date || m.first_air_date))
+          .map((m) => ({ ...m, media_type: normalizeMediaType(m, type) }))
+          .slice(0, 6)
+      );
     }
   }
 
-  return {
-    fromCast: uniqueCast,
-    fromGenre,
-    others: similar,
-  };
+  return { fromCast: uniqueCast, fromGenre, others };
 }
