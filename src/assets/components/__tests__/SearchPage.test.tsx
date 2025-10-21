@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 import SearchPage from "../Pages/SearchPage";
@@ -32,7 +32,7 @@ describe("SearchPage", () => {
       }),
     } as unknown as Response);
 
-    render(
+    renderWithClient(
       <MemoryRouter initialEntries={["/search?q=Inception"]}>
         <SearchPage />
       </MemoryRouter>
@@ -61,7 +61,7 @@ describe("SearchPage", () => {
       }),
     } as unknown as Response);
 
-    render(
+    renderWithClient(
       <MemoryRouter initialEntries={["/search?q=Breaking+Bad"]}>
         <SearchPage />
       </MemoryRouter>
@@ -80,7 +80,7 @@ describe("SearchPage", () => {
       json: async () => ({ results: [] }),
     } as unknown as Response);
 
-    render(
+    renderWithClient(
       <MemoryRouter initialEntries={["/search?q=Nothing"]}>
         <SearchPage />
       </MemoryRouter>
@@ -91,4 +91,3 @@ describe("SearchPage", () => {
     });
   });
 });
-

@@ -1,42 +1,34 @@
+import React, { memo, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
 import Footer from "../Footer";
 import Navbar from "../Navbar";
-import { searchMulti, type TMDBMovie } from "../../../lib/tmdb";
+import { useSearch } from "../../../hooks/useApi";
 import type { Movie } from "../../../hooks/useFetchMovies";
 import MovieCard from "../Home/MovieCard";
 
-const SearchPage: React.FC = () => {
+const SearchPage: React.FC = memo(() => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
-  const [results, setResults] = useState<TMDBMovie[]>([]);
-  const [loading, setLoading] = useState(false);
+  
+  const { data: results, isLoading, error } = useSearch(query);
 
-  useEffect(() => {
-    if (!query.trim()) return;
-
-    let active = true;
-    const fetchResults = async () => {
-      setLoading(true);
-      try {
-        const data = await searchMulti(query);
-        if (active) {
-          setResults(data);
-        }
-      } catch (err) {
-        console.error("Error fetching search results:", err);
-        if (active) setResults([]);
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    fetchResults();
-
-    return () => {
-      active = false; // ✅ Prevent state updates if query changes mid-fetch
-    };
-  }, [query]);
+  const movies = useMemo(() => {
+    if (!results) return [];
+    return results.map((item): Movie => ({
+      id: item.id,
+      title: item.title || item.name || "Unknown",
+      year: item.release_date?.slice(0, 4) || item.first_air_date?.slice(0, 4) || "N/A",
+      genre: item.media_type === "tv" ? "TV" : "Movie",
+      rating: (item.vote_average ?? 0).toFixed(1),
+      backdrop: item.poster_path
+        ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+        : "",
+      media_type:
+        item.media_type === "movie" || item.media_type === "tv"
+          ? item.media_type
+          : "movie",
+    }));
+  }, [results]);
 
   return (
     <div className="bg-gray-900">
@@ -51,45 +43,49 @@ const SearchPage: React.FC = () => {
               : "Type a movie or show name in the search bar"}
           </h1>
 
-          {loading && results.length === 0 ? (
-            <p className="text-gray-400">Loading...</p>
-          ) : results.length > 0 ? (
+          {/* Loading state */}
+          {isLoading && movies.length === 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6" role="status" aria-live="polite">
+              {/* ✅ Add hidden accessible text for screen readers and tests */}
+              <span className="sr-only">Loading...</span>
+              {Array.from({ length: 12 }).map((_, index) => (
+                <div
+                  key={index}
+                  data-testid="skeleton-card"
+                  className="w-full h-64 bg-gray-800 animate-pulse rounded-lg"
+                />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-red-400">
+              Error loading search results. Please try again.
+            </div>
+          ) : movies.length > 0 ? (
             <>
-              {loading && (
-                <p className="text-gray-400 mb-2 text-sm">
-                  Updating results...
-                </p>
+              {isLoading && (
+                <p className="text-gray-400 mb-4 text-sm">Updating results...</p>
               )}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                {results.map((item) => {
-                  const movieLike: Movie = {
-                    id: item.id,
-                    title: item.title || item.name || "Unknown",
-                    year:
-                      item.release_date?.slice(0, 4) ||
-                      item.first_air_date?.slice(0, 4) ||
-                      "N/A",
-                    genre: item.media_type === "tv" ? "TV" : "Movie",
-                    rating: (item.vote_average ?? 0).toFixed(1),
-                    backdrop: item.poster_path
-                      ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
-                      : "https://via.placeholder.com/300x450?text=No+Image",
-                    media_type:
-                      item.media_type === "movie" || item.media_type === "tv"
-                        ? item.media_type
-                        : "movie",
-                  };
-                  return (
-                    <MovieCard
-                      key={`${item.media_type}-${item.id}`}
-                      movie={movieLike}
-                    />
-                  );
-                })}
+              <div
+                data-testid="movies-grid"
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6"
+              >
+                {movies.map((movie) => (
+                  <MovieCard
+                    key={`${movie.media_type}-${movie.id}`}
+                    movie={movie}
+                  />
+                ))}
               </div>
             </>
           ) : (
-            query && <p className="text-gray-400">No results found.</p>
+            query && (
+              <div className="text-center py-12">
+                <div className="text-gray-400 text-lg mb-2">No results found</div>
+                <div className="text-gray-500 text-sm">
+                  Try searching for a different movie or TV show
+                </div>
+              </div>
+            )
           )}
         </main>
 
@@ -97,6 +93,8 @@ const SearchPage: React.FC = () => {
       </div>
     </div>
   );
-};
+});
+
+SearchPage.displayName = "SearchPage";
 
 export default SearchPage;

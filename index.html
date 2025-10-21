@@ -4,10 +4,40 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/binge.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BingeCinema</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#F59E0B" />
+    <meta name="description" content="Discover and watch your favorite movies and TV shows" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Preconnect to external domains for better performance -->
+    <link rel="preconnect" href="https://api.themoviedb.org" />
+    <link rel="preconnect" href="https://image.tmdb.org" />
+    <link rel="preconnect" href="https://www.youtube.com" />
+    
+    <!-- DNS prefetch for additional performance -->
+    <link rel="dns-prefetch" href="https://api.themoviedb.org" />
+    <link rel="dns-prefetch" href="https://image.tmdb.org" />
+    
+    <title>BingeCinema - Movie Discovery App</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

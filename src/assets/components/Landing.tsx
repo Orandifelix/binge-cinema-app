@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useCallback } from "react";
 import Content from "./Landing/Content";
 import Next_previous from "./Landing/Next_previous";
 import PlayModal from "./Landing/Play_modal";
+import { useTrendingMovies } from "../../hooks/useApi";
+import type { TMDBVideo } from "../../lib/tmdb"; // ✅ import the proper type
 
 // Movie type for internal state
 interface Movie {
@@ -16,54 +18,23 @@ interface Movie {
   trailerUrl?: string | null;
 }
 
-// TMDB API types
-interface TMDBTrendingMovie {
-  id: number;
-  title: string;
-}
-
-interface TMDBMovieDetails {
-  id: number;
-  title: string;
-  release_date?: string;
-  runtime?: number;
-  genres?: { id: number; name: string }[];
-  vote_average?: number;
-  overview: string;
-  backdrop_path?: string;
-  videos?: {
-    results: {
-      id: string;
-      key: string;
-      name: string;
-      site: string;
-      type: string;
-    }[];
-  };
-}
-
-const Landing: React.FC = () => {
+const Landing: React.FC = memo(() => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [trailerUrl, setTrailerUrl] = useState<string>("");
 
-  // Fetch trending movies + details + trailer
+  // Use React Query for trending movies
+  const { data: trendingMovies, isLoading, error } = useTrendingMovies("movie");
+
+  // Transform trending movies to detailed movie format
   useEffect(() => {
-    const fetchTrendingMovies = async () => {
+    if (!trendingMovies) return;
+
+    const fetchMovieDetails = async () => {
       try {
-        const res = await fetch("https://api.themoviedb.org/3/trending/movie/week", {
-          headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_TMDB_READ_ACCESS_TOKEN}`,
-            accept: "application/json",
-          },
-        });
-
-        if (!res.ok) throw new Error(`TMDB API error: ${res.status}`);
-        const data: { results: TMDBTrendingMovie[] } = await res.json();
-
         const detailedMovies: (Movie | null)[] = await Promise.all(
-          data.results.map(async (movie) => {
+          trendingMovies.slice(0, 10).map(async (movie) => {
             try {
               const detailsRes = await fetch(
                 `https://api.themoviedb.org/3/movie/${movie.id}?append_to_response=videos`,
@@ -75,10 +46,12 @@ const Landing: React.FC = () => {
                 }
               );
 
-              const details: TMDBMovieDetails = await detailsRes.json();
+              if (!detailsRes.ok) return null;
+              const details = await detailsRes.json();
 
+              // ✅ Use the correct type for the trailer
               const trailer = details.videos?.results.find(
-                (vid) => vid.type === "Trailer" && vid.site === "YouTube"
+                (vid: TMDBVideo) => vid.type === "Trailer" && vid.site === "YouTube"
               );
 
               return {
@@ -90,7 +63,7 @@ const Landing: React.FC = () => {
                 rating: details.vote_average || 0,
                 overview: details.overview,
                 backdrop: details.backdrop_path
-                  ? `https://image.tmdb.org/t/p/original${details.backdrop_path}`
+                  ? `https://image.tmdb.org/t/p/w1280${details.backdrop_path}`
                   : "",
                 trailerUrl: trailer ? `https://www.youtube.com/embed/${trailer.key}` : null,
               };
@@ -101,26 +74,29 @@ const Landing: React.FC = () => {
           })
         );
 
-        // Filter out nulls
+        // Filter out nulls and set movies
         setMovies(detailedMovies.filter((m): m is Movie => m !== null));
       } catch (err) {
-        console.error("Error fetching trending movies:", err);
+        console.error("Error processing movie details:", err);
       }
     };
 
-    fetchTrendingMovies();
-  }, []);
+    fetchMovieDetails();
+  }, [trendingMovies]);
 
   // Open trailer modal
-  const playTrailer = (movieId: number) => {
-    const movie = movies.find((m) => m.id === movieId);
-    if (movie?.trailerUrl) {
-      setTrailerUrl(movie.trailerUrl);
-      setTrailerOpen(true);
-    } else {
-      console.warn("No trailer available for this movie");
-    }
-  };
+  const playTrailer = useCallback(
+    (movieId: number) => {
+      const movie = movies.find((m) => m.id === movieId);
+      if (movie?.trailerUrl) {
+        setTrailerUrl(movie.trailerUrl);
+        setTrailerOpen(true);
+      } else {
+        console.warn("No trailer available for this movie");
+      }
+    },
+    [movies]
+  );
 
   // Auto-slide carousel
   useEffect(() => {
@@ -131,20 +107,42 @@ const Landing: React.FC = () => {
     return () => clearInterval(interval);
   }, [movies]);
 
-  if (movies.length === 0) {
+  const prevMovie = useCallback(() => {
+    setCurrentIndex((prev) => (prev === 0 ? movies.length - 1 : prev - 1));
+  }, [movies.length]);
+
+  const nextMovie = useCallback(() => {
+    setCurrentIndex((prev) => (prev === movies.length - 1 ? 0 : prev + 1));
+  }, [movies.length]);
+
+  const closeTrailer = useCallback(() => {
+    setTrailerOpen(false);
+  }, []);
+
+  // Loading state
+  if (isLoading || movies.length === 0) {
     return (
       <section className="flex items-center justify-center w-full h-screen bg-black text-white">
-        <p>Loading movies...</p>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+          <p>Loading movies...</p>
+        </div>
+      </section>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section className="flex items-center justify-center w-full h-screen bg-black text-white">
+        <div className="text-center">
+          <p className="text-red-400">Error loading movies</p>
+        </div>
       </section>
     );
   }
 
   const movie = movies[currentIndex];
-
-  const prevMovie = () =>
-    setCurrentIndex((prev) => (prev === 0 ? movies.length - 1 : prev - 1));
-  const nextMovie = () =>
-    setCurrentIndex((prev) => (prev === movies.length - 1 ? 0 : prev + 1));
 
   return (
     <section
@@ -164,6 +162,7 @@ const Landing: React.FC = () => {
             className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-colors duration-300 ${
               idx === currentIndex ? "bg-white" : "bg-white/50"
             }`}
+            aria-label={`Go to slide ${idx + 1}`}
           />
         ))}
       </div>
@@ -171,10 +170,12 @@ const Landing: React.FC = () => {
       <PlayModal
         trailerOpen={trailerOpen}
         trailerUrl={trailerUrl}
-        onClose={() => setTrailerOpen(false)}
+        onClose={closeTrailer}
       />
     </section>
   );
-};
+});
+
+Landing.displayName = "Landing";
 
 export default Landing;
