@@ -84,9 +84,6 @@ const SimilarSuggestions: React.FC<Props> = ({ type }) => {
     <div className="mt-12 space-y-12 px-4 md:px-8">
       {fromCast.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold text-white mb-3">
-            From Cast
-          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {fromCast.slice(0, 6).map((m) => (
               <MovieCard key={`${m.id}-${m.media_type}`} movie={mapToMovieCardData(m)} />
@@ -97,9 +94,6 @@ const SimilarSuggestions: React.FC<Props> = ({ type }) => {
 
       {fromGenre.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold text-white mb-3">
-            From Genre
-          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {fromGenre.slice(0, 6).map((m) => (
               <MovieCard key={`${m.id}-${m.media_type}`} movie={mapToMovieCardData(m)} />
@@ -110,9 +104,6 @@ const SimilarSuggestions: React.FC<Props> = ({ type }) => {
 
       {others.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold text-white mb-3">
-            Similar Titles
-          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {others.slice(0, 6).map((m) => (
               <MovieCard key={`${m.id}-${m.media_type}`} movie={mapToMovieCardData(m)} />
