@@ -135,8 +135,8 @@ const Live = () => {
       <main className="flex-1 overflow-y-auto">
         {/* Title */}
         <div className="bg-gray-950 py-6 text-center">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-100">
-            🎬 Now watching <span className="text-red-500">{title}</span>
+          <h1 className="text-xl sm:text-xl md:text-xl font-bold text-gray-100">
+            🎬 Now watching ... <span className="text-red-500 text-xl sm:text-xl md:text-xl font-bold">{title}</span>
           </h1>
         </div>
 
