@@ -136,7 +136,7 @@ const Live = () => {
         {/* Title */}
         <div className="bg-gray-950 py-6 text-center">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-100">
-            🎬 You are watching <span className="text-red-500">{title}</span>
+            🎬 Now watching <span className="text-red-500">{title}</span>
           </h1>
         </div>
 
@@ -146,6 +146,7 @@ const Live = () => {
             <iframe
               src={embedUrl}
               allow="autoplay; encrypted-media"
+              referrerpolicy="origin"
               allowFullScreen
               className="absolute top-0 left-0 w-full h-full border-none"
             />
